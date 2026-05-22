@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chi tiết sản phẩm – Itoshira</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/home.css" />
+    <link rel="stylesheet" href="../css/product-detail.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="logo">Itoshira</div>
+      <form class="search">
+        <input type="text" placeholder="Search..." />
+        <button type="submit">🔍</button>
+      </form>
+      <nav class="menu">
+        <a href="home.html">Trang chủ</a>
+        <a href="products.html">Sản phẩm</a>
+        <a href="trend.html">Xu hướng</a>
+        <a href="sale.html">Giảm giá</a>
+        <a href="cart.html">Giỏ hàng</a>
+      </nav>
+      <div class="auth">
+        <a href="register.html">Đăng ký</a>
+        <a href="login.html" class="btn-login">Đăng nhập</a>
+      </div>
+    </header>
+
+    <main class="container">
+      <h1 id="product-name">Đang tải...</h1>
+
+      <!-- Chi tiết sản phẩm -->
+      <div class="detail-wrapper">
+        <div class="detail-image">
+          <img id="product-img" src="" alt="" />
+          <span class="badge" id="product-badge">MỚI</span>
+        </div>
+        <div class="detail-info">
+          <p class="detail-sku">Mã SP: <span id="product-sku">–</span></p>
+          <div class="detail-price">
+            <span id="product-old-price" class="old-price" style="display:none"></span>
+            <span id="product-price"></span>
+            <span id="product-discount" style="color:#ff3d7f;font-weight:bold;margin-left:8px;display:none"></span>
+          </div>
+          <p class="detail-desc" id="product-desc"></p>
+          <div class="detail-meta">
+            <p><strong>Chất liệu:</strong> <span id="product-material">–</span></p>
+            <p><strong>Giới tính:</strong> <span id="product-gender">–</span></p>
+          </div>
+          <div class="detail-section">
+            <p class="detail-label">Màu sắc: <strong id="selected-color"></strong></p>
+            <div class="option-list" id="color-list"></div>
+          </div>
+          <div class="detail-section">
+            <p class="detail-label">Kích thước: <strong id="selected-size"></strong></p>
+            <div class="option-list" id="size-list"></div>
+          </div>
+          <div class="detail-section">
+            <p class="detail-label">Số lượng:</p>
+            <div class="qty-control">
+              <button id="qty-minus">−</button>
+              <span id="qty-value">1</span>
+              <button id="qty-plus">+</button>
+            </div>
+          </div>
+          <div class="detail-actions">
+            <button class="buy" id="btn-buy">Mua ngay</button>
+            <button class="cart" id="btn-cart">Thêm vào giỏ</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Đánh giá & bình luận ── -->
+      <section class="reviews-section">
+        <h2 class="reviews-title">Đánh giá sản phẩm</h2>
+
+        <!-- Tổng quan sao -->
+        <div class="reviews-summary" id="reviews-summary"></div>
+
+        <!-- Form gửi đánh giá -->
+        <div class="review-form" id="review-form">
+          <h3>Viết đánh giá của bạn</h3>
+
+          <p class="star-optional">Chọn số sao (tuỳ chọn):</p>
+          <div class="star-input" id="star-input">
+            <span class="star" data-v="1">★</span>
+            <span class="star" data-v="2">★</span>
+            <span class="star" data-v="3">★</span>
+            <span class="star" data-v="4">★</span>
+            <span class="star" data-v="5">★</span>
+          </div>
+          <input type="hidden" id="rating-value" value="0" />
+
+          <textarea id="review-comment" placeholder="Nhận xét của bạn về sản phẩm..."></textarea>
+
+          <button class="btn-submit-review" id="btn-submit-review">Gửi đánh giá</button>
+          <p class="review-login-hint" id="review-login-hint" style="display:none">
+            <a href="login.html">Đăng nhập</a> để viết đánh giá.
+          </p>
+        </div>
+
+        <!-- Danh sách đánh giá -->
+        <div class="reviews-list" id="reviews-list">
+          <p style="color:#888;text-align:center">Đang tải đánh giá...</p>
+        </div>
+      </section>
+    </main>
+
+    <div class="contact-fixed">
+      <a href="https://web.facebook.com/toandien.nguyen.921" target="_blank" class="fb"><i class="fab fa-facebook-f"></i></a>
+      <a href="https://web.facebook.com/toandien.nguyen.921" target="_blank" class="mess"><i class="fab fa-facebook-messenger"></i></a>
+      <a href="https://web.facebook.com/pham.hung.291487" target="_blank" class="zalo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="zalo" />
+      </a>
+    </div>
+
+    <footer>
+      <div class="footer-container">
+        <div class="footer-box">
+          <h4>Itoshira</h4>
+          <p>Chuyên cung cấp các sản phẩm thời trang xu hướng mới nhất.</p>
+        </div>
+        <div class="footer-box">
+          <h4>Chi nhánh cửa hàng</h4>
+          <ul>
+            <li><i class="fas fa-map-marker-alt"></i> Số 122 Hoàng Quốc Việt, Cầu Giấy, Hà Nội</li>
+            <li><i class="fas fa-map-marker-alt"></i> Số 96A Trần Phú, Hà Đông, Hà Nội</li>
+            <li><i class="fas fa-phone"></i> Hotline: 0865623279</li>
+            <li><i class="fas fa-envelope"></i> Email: Toandien.ptit@gmail.com</li>
+          </ul>
+        </div>
+        <div class="footer-box">
+          <h4>Hỗ trợ khách hàng</h4>
+          <ul>
+            <li><a href="chinh-sach-doi-tra.html">Chính sách đổi trả</a></li>
+            <li><a href="lien-he-ho-tro.html">Liên hệ hỗ trợ</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="copyright">&copy; 2026 Itoshira. All rights reserved.</div>
+    </footer>
+
+    <script src="../scripts/search.js"></script>
+    <script src="../scripts/product-detail.js"></script>
+    <script src="../scripts/auth-ui.js"></script>
+</body>
+</html>

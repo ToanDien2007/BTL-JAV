@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Itoshira</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/home.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="logo">Itoshira</div>
+      <form class="search">
+        <input type="text" placeholder="Search..." />
+        <button type="submit">🔍</button>
+      </form>
+      <nav class="menu">
+        <a href="home.html">Trang chủ</a>
+        <a href="products.html">Sản phẩm</a>
+        <a href="trend.html" class="active">Xu hướng</a>
+        <a href="sale.html">Giảm giá</a>
+        <a href="cart.html">Giỏ hàng</a>
+      </nav>
+      <div class="auth">
+        <a href="register.html">Đăng ký</a>
+        <a href="login.html" class="btn-login">Đăng nhập</a>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-content">
+        <h2>Summer Collection 2026</h2>
+        <p>Giảm giá lên đến 50% cho tất cả sản phẩm</p>
+        <a href="sale.html" class="btn-hero">Mua ngay</a>
+      </div>
+    </section>
+
+    <main class="container">
+      <h1>Xu hướng hiện nay</h1>
+      <!-- Card sản phẩm sẽ được load từ DB bởi products.js -->
+      <div class="products"></div>
+    </main>
+
+    <div class="contact-fixed">
+      <a href="https://web.facebook.com/toandien.nguyen.921" target="_blank" class="fb">
+        <i class="fab fa-facebook-f"></i>
+      </a>
+      <a href="https://web.facebook.com/toandien.nguyen.921" target="_blank" class="mess">
+        <i class="fab fa-facebook-messenger"></i>
+      </a>
+      <a href="https://web.facebook.com/pham.hung.291487" target="_blank" class="zalo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="zalo" />
+      </a>
+    </div>
+
+    <footer>
+      <div class="footer-container">
+        <div class="footer-box">
+          <h4>Itoshira</h4>
+          <p>Chuyên cung cấp các sản phẩm thời trang xu hướng mới nhất.</p>
+        </div>
+        <div class="footer-box">
+          <h4>Chi nhánh cửa hàng</h4>
+          <ul>
+            <li><i class="fas fa-map-marker-alt"></i> Số 122 Hoàng Quốc Việt, phường Nghĩa Đô, Cầu Giấy, Hà Nội</li>
+            <li><i class="fas fa-map-marker-alt"></i> Số 96A Trần Phú, phường Hà Đông, Hà Nội</li>
+            <li><i class="fas fa-phone"></i> Hotline: 0865623279</li>
+            <li><i class="fas fa-envelope"></i> Email: Toandien.ptit@gmail.com</li>
+          </ul>
+        </div>
+        <div class="footer-box">
+          <h4>Hỗ trợ khách hàng</h4>
+          <ul>
+            <li><a href="chinh-sach-doi-tra.html">Chính sách đổi trả</a></li>
+            <li><a href="lien-he-ho-tro.html">Liên hệ hỗ trợ</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="copyright">&copy; 2026 Itoshira. All rights reserved.</div>
+    </footer>
+
+    <script src="../scripts/products.js"></script>
+    <script src="../scripts/search.js"></script>
+    <script src="../scripts/auth-ui.js"></script>
+</body>
+</html>

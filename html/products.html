@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Itoshira</title>
+    <link rel="stylesheet" href="../css/home.css" />
+    <link rel="stylesheet" href="../css/products.css" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="logo">Itoshira</div>
+      <form class="search">
+        <input type="text" placeholder="Search..." />
+        <button type="submit">🔍</button>
+      </form>
+      <nav class="menu">
+        <a href="home.html">Trang chủ</a>
+        <a href="products.html" class="active">Sản phẩm</a>
+        <a href="trend.html">Xu hướng</a>
+        <a href="sale.html">Giảm giá</a>
+        <a href="cart.html">Giỏ hàng</a>
+      </nav>
+      <div class="auth">
+        <a href="register.html">Đăng ký</a>
+        <a href="login.html" class="btn-login">Đăng nhập</a>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-content">
+        <h2>Summer Collection 2026</h2>
+        <p>Giảm giá lên đến 50% cho tất cả sản phẩm</p>
+        <a href="sale.html" class="btn-hero">Mua ngay</a>
+      </div>
+    </section>
+
+    <main class="container product-page-layout">
+      <aside class="filter-sidebar">
+        <div class="filter-header">
+          <span class="filter-title">Bộ lọc</span>
+          <a href="#" class="filter-reset">Mặc định</a>
+        </div>
+
+        <!-- Danh mục: data-cat khớp category_id trong DB -->
+        <div class="filter-group">
+          <div class="group-header">
+            <span>Danh mục</span><i class="fas fa-chevron-down"></i>
+          </div>
+          <div>
+            <label class="filter-item">
+              <input type="checkbox" data-cat="1" />
+              <span class="checkmark"></span> Quần áo
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" data-cat="2" />
+              <span class="checkmark"></span> Giày dép
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" data-cat="3" />
+              <span class="checkmark"></span> Phụ kiện
+            </label>
+          </div>
+        </div>
+
+        <!-- Giá: data-min / data-max thay vì parse text -->
+        <div class="filter-group">
+          <div class="group-header">
+            <span>Giá</span><i class="fas fa-chevron-down"></i>
+          </div>
+          <div>
+            <label class="filter-item">
+              <input type="checkbox" data-min="0" data-max="100000" />
+              <span class="checkmark"></span> Dưới 100.000đ
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" data-min="100000" data-max="300000" />
+              <span class="checkmark"></span> 100k - 300k
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" data-min="300000" data-max="500000" />
+              <span class="checkmark"></span> 300k - 500k
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" data-min="500000" data-max="1000000" />
+              <span class="checkmark"></span> 500k - 1 triệu
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" data-min="1000000" data-max="99999999" />
+              <span class="checkmark"></span> Trên 1 triệu
+            </label>
+          </div>
+        </div>
+
+        <!-- Giới tính: value rõ ràng -->
+        <div class="filter-group">
+          <div class="group-header">
+            <span>Giới tính</span><i class="fas fa-chevron-down"></i>
+          </div>
+          <div>
+            <label class="filter-item radio-container">
+              <input type="radio" name="gender" value="Nam" />
+              <span class="radiomark"></span> Nam
+            </label>
+            <label class="filter-item radio-container">
+              <input type="radio" name="gender" value="Nữ" />
+              <span class="radiomark"></span> Nữ
+            </label>
+          </div>
+        </div>
+
+        <button class="btn-apply-filter">Áp dụng bộ lọc</button>
+      </aside>
+
+      <section class="products-wrapper">
+        <!-- Card load từ DB bởi products.js -->
+        <div class="product"></div>
+      </section>
+    </main>
+
+    <div class="contact-fixed">
+      <a href="https://web.facebook.com/toandien.nguyen.921" target="_blank" class="fb">
+        <i class="fab fa-facebook-f"></i>
+      </a>
+      <a href="https://web.facebook.com/toandien.nguyen.921" target="_blank" class="mess">
+        <i class="fab fa-facebook-messenger"></i>
+      </a>
+      <a href="https://web.facebook.com/pham.hung.291487" target="_blank" class="zalo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="zalo" />
+      </a>
+    </div>
+
+    <footer>
+      <div class="footer-container">
+        <div class="footer-box">
+          <h4 style="color:#ff3d7f">ITOSHIRA</h4>
+          <p>Chuyên cung cấp các sản phẩm thời trang xu hướng mới nhất.</p>
+        </div>
+        <div class="footer-box">
+          <h4 style="color:#ff3d7f">CHI NHÁNH CỬA HÀNG</h4>
+          <ul>
+            <li><i class="fas fa-map-marker-alt"></i> Số 122 Hoàng Quốc Việt, Cầu Giấy, Hà Nội</li>
+            <li><i class="fas fa-map-marker-alt"></i> Số 96A Trần Phú, Hà Đông, Hà Nội</li>
+            <li><i class="fas fa-phone"></i> Hotline: 0865623279</li>
+            <li><i class="fas fa-envelope"></i> Email: Toandien.ptit@gmail.com</li>
+          </ul>
+        </div>
+        <div class="footer-box">
+          <h4 style="color:#ff3d7f">HỖ TRỢ KHÁCH HÀNG</h4>
+          <ul>
+            <li><a href="chinh-sach-doi-tra.html">Chính sách đổi trả</a></li>
+            <li><a href="lien-he-ho-tro.html">Liên hệ hỗ trợ</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="copyright">&copy; 2026 Itoshira. All rights reserved.</div>
+    </footer>
+
+    <!-- Thứ tự quan trọng: products.js trước, filter.js sau -->
+    <script src="../scripts/search.js"></script>
+    <script src="../scripts/products.js"></script>
+    <script src="../scripts/filter.js"></script>
+    <script src="../scripts/auth-ui.js"></script>
+</body>
+</html>

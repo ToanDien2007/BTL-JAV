@@ -1,0 +1,129 @@
+.info-banner {
+    width: 100%;
+    height: 320px;
+    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+                url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+}
+
+.info-banner-content h1 {
+    font-size: 48px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+}
+
+.info-banner-content p {
+    font-size: 18px;
+    font-weight: 400;
+    opacity: 0.9;
+}
+
+.info-title {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #ff3d7f;
+    display: inline-block;
+}
+
+.info-content {
+    max-width: 100%;
+}
+
+.info-section {
+    margin-bottom: 36px;
+}
+
+.info-section h3 {
+    font-size: 18px;
+    margin-bottom: 14px;
+    color: #0d0c22;
+}
+
+.info-section h3 i {
+    color: #ff3d7f;
+    margin-right: 8px;
+}
+
+.info-section ul,
+.info-section ol {
+    padding-left: 20px;
+    line-height: 2;
+    color: #444;
+}
+
+.info-section p {
+    line-height: 1.8;
+    color: #444;
+}
+
+.info-section a {
+    color: #ff3d7f;
+    text-decoration: none;
+}
+
+.info-section a:hover { text-decoration: underline; }
+
+.info-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 36px;
+}
+
+.info-card {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 24px 20px;
+    text-align: center;
+    transition: 0.3s;
+}
+
+.info-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.info-card i {
+    font-size: 28px;
+    color: #ff3d7f;
+    margin-bottom: 12px;
+}
+
+.info-card h4 {
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: #0d0c22;
+}
+
+.info-card p {
+    font-weight: bold;
+    color: #0d0c22;
+    margin-bottom: 6px;
+}
+
+.info-card p a {
+    color: #ff3d7f;
+    text-decoration: none;
+}
+
+.info-card span {
+    font-size: 13px;
+    color: #888;
+}
+
+@media (max-width: 768px) {
+    .info-banner-content h1 { font-size: 32px; }
+    .info-banner-content p  { font-size: 15px; }
+    .info-cards { grid-template-columns: 1fr; }
+}
