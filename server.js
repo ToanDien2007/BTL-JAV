@@ -129,49 +129,98 @@ app.get('/api/search', (req, res) => {
 });
 
 // ── Đánh giá sản phẩm ────────────────────────────────────────
+// ── Lấy bình luận + rating của sản phẩm ─────────────────────
 app.get('/api/reviews/:productId', (req, res) => {
-  const sql = `
-    SELECT r.id, r.rating, r.comment, r.created_at, r.user_id,
+  const pid = req.params.productId;
+
+  // Lấy bình luận (chỉ những row có comment)
+  const sqlComments = `
+    SELECT r.id, r.comment, r.created_at, r.user_id,
            u.username, u.full_name
     FROM reviews r
     JOIN users u ON u.id = r.user_id
-    WHERE r.product_id = ?
+    WHERE r.product_id = ? AND r.comment IS NOT NULL AND r.comment != ''
     ORDER BY r.created_at DESC
   `;
-  db.query(sql, [req.params.productId], (err, results) => {
+
+  // Lấy điểm sao trung bình từ bảng ratings
+  const sqlRating = `
+    SELECT COUNT(*) AS count, IFNULL(AVG(rating),0) AS avg,
+           JSON_OBJECTAGG(rating, cnt) AS dist
+    FROM (
+      SELECT rating, COUNT(*) AS cnt FROM ratings WHERE product_id = ? GROUP BY rating
+    ) t
+  `;
+
+  db.query(sqlComments, [pid], (err, comments) => {
     if (err) return res.status(500).json(err);
-    res.json(results);
+    db.query(
+      'SELECT COUNT(*) AS count, IFNULL(AVG(rating),0) AS avg FROM ratings WHERE product_id = ?',
+      [pid],
+      (err2, ratingRows) => {
+        if (err2) return res.status(500).json(err2);
+        db.query(
+          'SELECT rating, COUNT(*) AS cnt FROM ratings WHERE product_id = ? GROUP BY rating',
+          [pid],
+          (err3, dist) => {
+            if (err3) return res.status(500).json(err3);
+            res.json({
+              comments,
+              rating: {
+                avg:   parseFloat(ratingRows[0].avg) || 0,
+                count: ratingRows[0].count,
+                dist:  Object.fromEntries(dist.map(r => [r.rating, r.cnt])),
+              }
+            });
+          }
+        );
+      }
+    );
   });
 });
 
+// ── Gửi bình luận (nhiều lần, không cần sao) ─────────────────
 app.post('/api/reviews', (req, res) => {
-  if (!req.session?.user) {
-    return res.status(401).json({ message: 'Bạn cần đăng nhập để đánh giá.' });
-  }
-  const { product_id, rating, comment } = req.body;
-  if (!product_id || !comment?.trim()) {
-    return res.status(400).json({ message: 'Vui lòng nhập nhận xét.' });
-  }
-  if (rating < 0 || rating > 5) {
-    return res.status(400).json({ message: 'Số sao không hợp lệ.' });
-  }
+  if (!req.session?.user) return res.status(401).json({ message: 'Bạn cần đăng nhập.' });
+  const { product_id, comment } = req.body;
+  if (!product_id || !comment?.trim()) return res.status(400).json({ message: 'Vui lòng nhập bình luận.' });
 
   db.query(
-    'SELECT id FROM reviews WHERE product_id = ? AND user_id = ?',
-    [product_id, req.session.user.id],
+    'INSERT INTO reviews (product_id, user_id, comment) VALUES (?, ?, ?)',
+    [product_id, req.session.user.id, comment.trim()],
+    (err) => {
+      if (err) return res.status(500).json(err);
+      res.status(201).json({ message: 'Bình luận thành công!' });
+    }
+  );
+});
+
+// ── Vote sao (1 lần / sản phẩm, có thể đổi) ──────────────────
+app.post('/api/ratings', (req, res) => {
+  if (!req.session?.user) return res.status(401).json({ message: 'Bạn cần đăng nhập.' });
+  const { product_id, rating } = req.body;
+  if (!product_id || rating < 1 || rating > 5) return res.status(400).json({ message: 'Số sao không hợp lệ.' });
+
+  // INSERT hoặc UPDATE nếu đã vote rồi
+  db.query(
+    'INSERT INTO ratings (product_id, user_id, rating) VALUES (?,?,?) ON DUPLICATE KEY UPDATE rating=VALUES(rating)',
+    [product_id, req.session.user.id, rating],
+    (err) => {
+      if (err) return res.status(500).json(err);
+      res.json({ message: 'Đã cập nhật đánh giá!' });
+    }
+  );
+});
+
+// ── Lấy vote sao của user hiện tại ───────────────────────────
+app.get('/api/ratings/:productId', (req, res) => {
+  if (!req.session?.user) return res.json({ rating: 0 });
+  db.query(
+    'SELECT rating FROM ratings WHERE product_id = ? AND user_id = ?',
+    [req.params.productId, req.session.user.id],
     (err, rows) => {
       if (err) return res.status(500).json(err);
-      if (rows.length > 0) {
-        return res.status(409).json({ message: 'Bạn đã đánh giá sản phẩm này rồi.' });
-      }
-      db.query(
-        'INSERT INTO reviews (product_id, user_id, rating, comment) VALUES (?, ?, ?, ?)',
-        [product_id, req.session.user.id, rating, comment.trim()],
-        (err2) => {
-          if (err2) return res.status(500).json(err2);
-          res.status(201).json({ message: 'Đánh giá thành công!' });
-        }
-      );
+      res.json({ rating: rows[0]?.rating || 0 });
     }
   );
 });
@@ -199,6 +248,53 @@ app.delete('/api/reviews/:id', (req, res) => {
   );
 });
 
+// ── Cập nhật thông tin cá nhân (phone, address) ──────────────
+app.put('/api/me/profile', (req, res) => {
+  if (!req.session?.user) return res.status(401).json({ message: 'Chưa đăng nhập.' });
+  const { phone, address } = req.body;
+  db.query(
+    'UPDATE users SET phone = ?, address = ? WHERE id = ?',
+    [phone || null, address || null, req.session.user.id],
+    (err) => {
+      if (err) return res.status(500).json({ message: 'Lỗi cập nhật.' });
+      res.json({ message: 'Cập nhật thành công.' });
+    }
+  );
+});
+
+// ── Tạo đơn hàng + cập nhật total_spent ─────────────────────
+app.post('/api/orders', (req, res) => {
+  if (!req.session?.user) {
+    return res.status(401).json({ message: 'Bạn cần đăng nhập để đặt hàng.' });
+  }
+  const { items, subtotal, total, shipping_fee = 0, note = '' } = req.body;
+  if (!items?.length) return res.status(400).json({ message: 'Giỏ hàng trống.' });
+
+  db.query(
+    'INSERT INTO orders (user_id, status, subtotal, shipping_fee, total, note) VALUES (?,?,?,?,?,?)',
+    [req.session.user.id, 'pending', subtotal, shipping_fee, total, note],
+    (err, result) => {
+      if (err) return res.status(500).json({ message: 'Lỗi tạo đơn hàng.' });
+      const orderId = result.insertId;
+      const vals    = items.map(i => [orderId, i.product_id, i.quantity, i.unit_price, i.line_total]);
+      db.query(
+        'INSERT INTO order_items (order_id, product_id, quantity, unit_price, line_total) VALUES ?',
+        [vals],
+        (err2) => {
+          if (err2) return res.status(500).json({ message: 'Lỗi lưu sản phẩm đơn hàng.' });
+          // Cập nhật total_spent của user
+          db.query(
+            'UPDATE users SET total_spent = COALESCE(total_spent,0) + ? WHERE id = ?',
+            [total, req.session.user.id],
+            () => {} // ignore error nếu cột chưa tồn tại
+          );
+          res.json({ order_id: orderId, message: 'Đặt hàng thành công!' });
+        }
+      );
+    }
+  );
+});
+
 // ── /api/me – trả thông tin user đang đăng nhập ──────────────
 app.get('/api/me', (req, res) => {
     if (!req.session?.user) {
@@ -212,7 +308,7 @@ app.get('/api/me', (req, res) => {
             if (err) {
                 // Fallback nếu cột total_spent chưa tồn tại trong DB
                 db.query(
-                    'SELECT id, username, email, full_name FROM users WHERE id = ?',
+                    'SELECT id, username, email, full_name, phone, address FROM users WHERE id = ?',
                     [req.session.user.id],
                     (err2, rows2) => {
                         if (err2 || !rows2.length) return res.status(500).json({ message: 'Lỗi server.' });

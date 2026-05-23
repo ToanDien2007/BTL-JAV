@@ -34,6 +34,7 @@ async function loadDetail() {
     }
     document.title = `${p.name} – Itoshira`;
     document.getElementById('product-name').textContent = p.name;
+    window._currentProduct = p; // lưu để btn cart dùng
 
     const img = document.getElementById('product-img');
     img.src = p.image_url;
@@ -98,10 +99,28 @@ document.getElementById('qty-plus').addEventListener('click', () => {
 });
 
 document.getElementById('btn-buy').addEventListener('click', () => {
-  window.location.href = `product-detail.html?id=${productId}`;
+  // Lấy màu + size đang chọn
+  const color = document.getElementById('selected-color')?.textContent || '';
+  const size  = document.getElementById('selected-size')?.textContent  || '';
+  if (window.cartUtils && window._currentProduct) {
+    window.cartUtils.addToCart(window._currentProduct, qty, color, size);
+  }
+  window.location.href = 'cart.html';
 });
+
 document.getElementById('btn-cart').addEventListener('click', () => {
-  window.location.href = `product-detail.html?id=${productId}`;
+  const color = document.getElementById('selected-color')?.textContent || '';
+  const size  = document.getElementById('selected-size')?.textContent  || '';
+  if (window.cartUtils && window._currentProduct) {
+    window.cartUtils.addToCart(window._currentProduct, qty, color, size);
+    const btn = document.getElementById('btn-cart');
+    btn.textContent = '✓ Đã thêm vào giỏ';
+    btn.style.background = '#27ae60';
+    setTimeout(() => {
+      btn.textContent = 'Thêm vào giỏ';
+      btn.style.background = '';
+    }, 1500);
+  }
 });
 
 // ── Load đánh giá ─────────────────────────────────────────────
@@ -110,28 +129,27 @@ async function loadReviews() {
   const summary = document.getElementById('reviews-summary');
 
   try {
-    const res     = await fetch(`${BASE}/api/reviews/${productId}`);
-    const reviews = await res.json();
+    const res  = await fetch(`${BASE}/api/reviews/${productId}`);
+    const data = await res.json();
+    const { comments, rating } = data;
 
-    // Tổng quan sao
-    if (reviews.length > 0) {
-      const avg    = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
+    // Tổng quan sao (từ bảng ratings)
+    if (rating.count > 0) {
       const counts = [5,4,3,2,1].map(s => ({
-        star:  s,
-        count: reviews.filter(r => r.rating === s).length,
+        star: s, count: rating.dist[s] || 0,
       }));
       summary.innerHTML = `
         <div class="summary-left">
-          <div class="summary-avg">${avg.toFixed(1)}</div>
-          <div>${starsHtml(Math.round(avg), 22)}</div>
-          <div class="summary-total">${reviews.length} đánh giá</div>
+          <div class="summary-avg">${rating.avg.toFixed(1)}</div>
+          <div>${starsHtml(Math.round(rating.avg), 22)}</div>
+          <div class="summary-total">${rating.count} lượt đánh giá</div>
         </div>
         <div class="summary-bars">
           ${counts.map(c => `
             <div class="bar-row">
               <span>${c.star}★</span>
               <div class="bar-track">
-                <div class="bar-fill" style="width:${reviews.length ? (c.count/reviews.length*100) : 0}%"></div>
+                <div class="bar-fill" style="width:${rating.count ? (c.count/rating.count*100) : 0}%"></div>
               </div>
               <span>${c.count}</span>
             </div>
@@ -139,24 +157,21 @@ async function loadReviews() {
         </div>
       `;
     } else {
-      summary.innerHTML = '<p style="color:#888">Chưa có đánh giá nào.</p>';
+      summary.innerHTML = '<p style="color:#888">Chưa có đánh giá sao nào.</p>';
     }
 
     // Danh sách bình luận
-    if (!reviews.length) { list.innerHTML = ''; return; }
+    if (!comments.length) { list.innerHTML = '<p style="color:#888;padding:10px 0">Chưa có bình luận nào.</p>'; return; }
 
-    list.innerHTML = reviews.map(r => {
-      const isOwn    = currentUser && (currentUser.id === r.user_id || currentUser.username === r.username);
+    list.innerHTML = comments.map(r => {
+      const isOwn = currentUser && (currentUser.id === r.user_id || currentUser.username === r.username);
       const deleteBtn = isOwn
-        ? `<button class="btn-delete-review" data-id="${r.id}" title="Xóa bình luận của bạn">
-             <i class="fas fa-trash-alt"></i>
-           </button>`
+        ? `<button class="btn-delete-review" data-id="${r.id}" title="Xóa"><i class="fas fa-trash-alt"></i></button>`
         : '';
       return `
         <div class="review-item" data-review-id="${r.id}">
           <div class="review-header">
             <span class="review-author">${r.full_name || r.username}</span>
-            <span class="review-stars">${r.rating > 0 ? starsHtml(r.rating) : ''}</span>
             <span class="review-date">${new Date(r.created_at).toLocaleDateString('vi-VN')}</span>
             ${deleteBtn}
           </div>
@@ -165,22 +180,15 @@ async function loadReviews() {
       `;
     }).join('');
 
-    // Gắn sự kiện xóa
     list.querySelectorAll('.btn-delete-review').forEach(btn => {
       btn.addEventListener('click', async () => {
         if (!confirm('Xóa bình luận này?')) return;
-        const reviewId = btn.dataset.id;
-        const res = await fetch(`${BASE}/api/reviews/${reviewId}`, {
-          method: 'DELETE',
-          credentials: 'include',
+        const delRes = await fetch(`${BASE}/api/reviews/${btn.dataset.id}`, {
+          method: 'DELETE', credentials: 'include',
         });
-        const data = await res.json();
-        if (res.ok) {
-          btn.closest('.review-item').remove();
-          loadReviews(); // reload để cập nhật tổng quan sao
-        } else {
-          alert(data.message || 'Xóa thất bại.');
-        }
+        const delData = await delRes.json();
+        if (delRes.ok) { btn.closest('.review-item').remove(); }
+        else alert(delData.message || 'Xóa thất bại.');
       });
     });
 
@@ -207,7 +215,19 @@ async function checkLogin() {
   }
 }
 
-// ── Chọn sao (tuỳ chọn, không bắt buộc) ─────────────────────
+// ── Vote sao (riêng biệt, 1 lần / sản phẩm, có thể đổi) ─────
+async function loadMyRating() {
+  try {
+    const res  = await fetch(`${BASE}/api/ratings/${productId}`, { credentials: 'include' });
+    const data = await res.json();
+    const cur  = data.rating || 0;
+    document.getElementById('rating-value').value = cur;
+    document.querySelectorAll('.star').forEach(s =>
+      s.classList.toggle('active', Number(s.dataset.v) <= cur)
+    );
+  } catch (_) {}
+}
+
 document.querySelectorAll('.star').forEach(star => {
   star.addEventListener('mouseover', () => {
     const v = Number(star.dataset.v);
@@ -221,41 +241,37 @@ document.querySelectorAll('.star').forEach(star => {
       s.classList.toggle('active', Number(s.dataset.v) <= cur)
     );
   });
-  star.addEventListener('click', () => {
+  star.addEventListener('click', async () => {
     const v = Number(star.dataset.v);
-    const current = Number(document.getElementById('rating-value').value);
-    // Click lại cùng sao → bỏ chọn
-    if (current === v) {
-      document.getElementById('rating-value').value = '0';
-      document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
-    } else {
-      document.getElementById('rating-value').value = v;
-      document.querySelectorAll('.star').forEach(s =>
-        s.classList.toggle('active', Number(s.dataset.v) <= v)
-      );
-    }
+    document.getElementById('rating-value').value = v;
+    document.querySelectorAll('.star').forEach(s =>
+      s.classList.toggle('active', Number(s.dataset.v) <= v)
+    );
+    // Gửi vote ngay khi click
+    const res  = await fetch(`${BASE}/api/ratings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ product_id: productId, rating: v }),
+    });
+    if (res.ok) loadReviews();
   });
 });
 
-// ── Gửi đánh giá ─────────────────────────────────────────────
+// ── Gửi bình luận (không cần sao) ────────────────────────────
 document.getElementById('btn-submit-review').addEventListener('click', async () => {
-  const rating  = Number(document.getElementById('rating-value').value);
   const comment = document.getElementById('review-comment').value.trim();
-
-  if (!comment) return alert('Vui lòng nhập nhận xét.');
+  if (!comment) return alert('Vui lòng nhập bình luận.');
 
   const res  = await fetch(`${BASE}/api/reviews`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ product_id: productId, rating, comment }),
+    body: JSON.stringify({ product_id: productId, comment }),
   });
   const data = await res.json();
-
   if (res.ok) {
     document.getElementById('review-comment').value = '';
-    document.getElementById('rating-value').value   = '0';
-    document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
     loadReviews();
   } else {
     alert(data.message || 'Gửi thất bại.');
@@ -265,5 +281,5 @@ document.getElementById('btn-submit-review').addEventListener('click', async () 
 // ── Khởi chạy ────────────────────────────────────────────────
 if (productId) {
   loadDetail();
-  checkLogin().then(() => loadReviews());
+  checkLogin().then(() => { loadReviews(); loadMyRating(); });
 }

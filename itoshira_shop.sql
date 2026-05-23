@@ -23,6 +23,8 @@ CREATE TABLE `users` (
   `auth_provider` VARCHAR(30)     NOT NULL DEFAULT 'local',
   `provider_id`   VARCHAR(255)    NULL,
   `total_spent`   BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  `phone`         VARCHAR(20)     NULL,
+  `address`       VARCHAR(300)    NULL,
   `created_at`    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_users_username` (`username`),
@@ -145,8 +147,8 @@ CREATE TABLE `reviews` (
   `id`         BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
   `product_id` BIGINT UNSIGNED  NOT NULL,
   `user_id`    BIGINT UNSIGNED  NOT NULL,
-  `rating`     TINYINT UNSIGNED NOT NULL DEFAULT 5,
-  `comment`    TEXT             NOT NULL,
+  `rating`     TINYINT UNSIGNED NULL,
+  `comment`    TEXT             NULL,
   `created_at` TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_reviews_product` (`product_id`),
@@ -154,4 +156,19 @@ CREATE TABLE `reviews` (
     FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON UPDATE CASCADE ON DELETE CASCADE,
   CONSTRAINT `fk_reviews_user`
     FOREIGN KEY (`user_id`)    REFERENCES `users`    (`id`) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+--  Bảng ratings (vote sao – mỗi user 1 lần / sản phẩm)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `ratings` (
+  `id`         BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  `product_id` BIGINT UNSIGNED  NOT NULL,
+  `user_id`    BIGINT UNSIGNED  NOT NULL,
+  `rating`     TINYINT UNSIGNED NOT NULL,
+  `created_at` TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_rating` (`product_id`, `user_id`),
+  CONSTRAINT `fk_ratings_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ratings_user`    FOREIGN KEY (`user_id`)    REFERENCES `users`    (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -38,9 +38,32 @@ function createCard(p, badgeText = 'MỚI') {
     </div>
   `;
 
-  // Bấm vào bất kỳ đâu trên card (kể cả button) → trang chi tiết
-  card.addEventListener('click', () => {
+  // Click vào card → trang chi tiết
+  card.addEventListener('click', (e) => {
+    // Không navigate nếu bấm vào button
+    if (e.target.closest('button')) return;
     window.location.href = `product-detail.html?id=${p.id}`;
+  });
+
+  // Nút Mua ngay
+  card.querySelector('.buy').addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.location.href = `product-detail.html?id=${p.id}`;
+  });
+
+  // Nút Thêm vào giỏ
+  card.querySelector('.cart').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (window.cartUtils) {
+      window.cartUtils.addToCart(p, 1);
+      const btn = e.currentTarget;
+      btn.textContent = '✓ Đã thêm';
+      btn.style.background = '#27ae60';
+      setTimeout(() => {
+        btn.textContent = 'Thêm vào giỏ';
+        btn.style.background = '';
+      }, 1200);
+    }
   });
 
   return card;
