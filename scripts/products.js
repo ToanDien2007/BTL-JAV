@@ -20,7 +20,7 @@ function createCard(p, badgeText = 'MỚI') {
       <p>
         <span class="old-price">${formatPrice(ori)}</span>
         ${formatPrice(p.price)}
-        <span style="color:#ff3d7f;font-size:12px;font-weight:bold;margin-left:4px">-${p.discount_percent}%</span>
+        <span class="discount-badge">-${p.discount_percent}%</span>
       </p>`;
   } else {
     priceHtml = `<p>${formatPrice(p.price)}</p>`;
@@ -58,10 +58,10 @@ function createCard(p, badgeText = 'MỚI') {
       window.cartUtils.addToCart(p, 1);
       const btn = e.currentTarget;
       btn.textContent = '✓ Đã thêm';
-      btn.style.background = '#27ae60';
+      btn.classList.add('btn-added');
       setTimeout(() => {
         btn.textContent = 'Thêm vào giỏ';
-        btn.style.background = '';
+        btn.classList.remove('btn-added');
       }, 1200);
     }
   });
@@ -79,7 +79,7 @@ async function apiFetch(url) {
 function render(grid, products, badgeText) {
   grid.innerHTML = '';
   if (!products.length) {
-    grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#888;padding:40px">Không có sản phẩm.</p>';
+    grid.innerHTML = '<p class="grid-empty">Không có sản phẩm.</p>';
     return;
   }
   products.forEach(p => grid.appendChild(createCard(p, badgeText)));
@@ -88,7 +88,7 @@ function render(grid, products, badgeText) {
 async function loadHome() {
   const grid = document.querySelector('main .products');
   if (!grid) return;
-  grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#888">Đang tải...</p>';
+  grid.innerHTML = '<p class="grid-loading">Đang tải...</p>';
   const data = await apiFetch(`${BASE}/api/products`);
   render(grid, data.slice(0, 5), 'MỚI');
 }
@@ -96,7 +96,7 @@ async function loadHome() {
 async function loadTrend() {
   const grid = document.querySelector('main .products');
   if (!grid) return;
-  grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#888">Đang tải...</p>';
+  grid.innerHTML = '<p class="grid-loading">Đang tải...</p>';
   const data = await apiFetch(`${BASE}/api/products/trending`);
   render(grid, data, 'XU HƯỚNG');
 }
@@ -104,19 +104,24 @@ async function loadTrend() {
 async function loadSale() {
   const grid = document.querySelector('main .products');
   if (!grid) return;
-  grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#888">Đang tải...</p>';
+  grid.innerHTML = '<p class="grid-loading">Đang tải...</p>';
   const data = await apiFetch(`${BASE}/api/products/sale`);
   render(grid, data, 'GIẢM GIÁ');
 }
 
 async function doRender(grid, q, filters) {
-  grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#888;padding:40px">Đang tải...</p>';
+  grid.innerHTML = '<p class="grid-empty">Đang tải...</p>';
   let data;
   if (q) {
     data = await apiFetch(`${BASE}/api/search?q=${encodeURIComponent(q)}`);
   } else {
-    const qs = new URLSearchParams(filters).toString();
-    data = await apiFetch(`${BASE}/api/products?${qs}`);
+    // URLSearchParams không xử lý array → build thủ công
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => {
+      if (Array.isArray(v)) v.forEach(val => params.append(k, val));
+      else params.append(k, v);
+    });
+    data = await apiFetch(`${BASE}/api/products?${params.toString()}`);
   }
   render(grid, data, 'MỚI');
 }

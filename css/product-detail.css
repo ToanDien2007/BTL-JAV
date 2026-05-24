@@ -273,3 +273,7 @@
   .summary-left    { min-width: unset; }
   .reviews-section { padding-top: 24px; }
 }
+
+/* ── Utility classes đánh giá ── */
+.text-gray-sm    { color: #888; padding: 10px 0; }
+.text-error      { color: #f00; }

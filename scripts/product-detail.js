@@ -115,10 +115,10 @@ document.getElementById('btn-cart').addEventListener('click', () => {
     window.cartUtils.addToCart(window._currentProduct, qty, color, size);
     const btn = document.getElementById('btn-cart');
     btn.textContent = '✓ Đã thêm vào giỏ';
-    btn.style.background = '#27ae60';
+    btn.classList.add('btn-added');
     setTimeout(() => {
       btn.textContent = 'Thêm vào giỏ';
-      btn.style.background = '';
+      btn.classList.remove('btn-added');
     }, 1500);
   }
 });
@@ -157,11 +157,11 @@ async function loadReviews() {
         </div>
       `;
     } else {
-      summary.innerHTML = '<p style="color:#888">Chưa có đánh giá sao nào.</p>';
+      summary.innerHTML = '<p class="text-gray-sm">Chưa có đánh giá sao nào.</p>';
     }
 
     // Danh sách bình luận
-    if (!comments.length) { list.innerHTML = '<p style="color:#888;padding:10px 0">Chưa có bình luận nào.</p>'; return; }
+    if (!comments.length) { list.innerHTML = '<p class="text-gray-sm">Chưa có bình luận nào.</p>'; return; }
 
     list.innerHTML = comments.map(r => {
       const isOwn = currentUser && (currentUser.id === r.user_id || currentUser.username === r.username);
@@ -193,7 +193,7 @@ async function loadReviews() {
     });
 
   } catch (err) {
-    list.innerHTML = '<p style="color:#f00">Lỗi tải đánh giá.</p>';
+    list.innerHTML = '<p class="text-error">Lỗi tải đánh giá.</p>';
   }
 }
 

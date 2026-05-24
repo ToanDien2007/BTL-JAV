@@ -79,6 +79,8 @@ async function initNavbarAuth() {
           <div>
             <div class="dd-name">${user.full_name}</div>
             <div class="dd-email">${user.email}</div>
+            ${user.phone   ? `<div class="dd-email"><i class="fas fa-phone dd-contact-icon"></i>${user.phone}</div>` : ''}
+            ${user.address ? `<div class="dd-email"><i class="fas fa-map-marker-alt dd-contact-icon"></i>${user.address}</div>` : ''}
           </div>
         </div>
 

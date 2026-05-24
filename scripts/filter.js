@@ -19,9 +19,9 @@ function collectFilters() {
     filters.max = priceChecked.dataset.max;
   }
 
-  // Danh mục: đọc data-cat
-  const catChecked = document.querySelector('input[data-cat]:checked');
-  if (catChecked) filters.cat = catChecked.dataset.cat;
+  // Danh mục: cho chọn nhiều, trả về mảng
+  const catChecked = [...document.querySelectorAll('input[data-cat]:checked')];
+  if (catChecked.length) filters.cat = catChecked.map(cb => cb.dataset.cat);
 
   return filters;
 }
@@ -67,14 +67,5 @@ function setupFilters(grid) {
     });
   });
 
-  // Chỉ cho chọn 1 checkbox danh mục tại 1 thời điểm
-  document.querySelectorAll('input[data-cat]').forEach(cb => {
-    cb.addEventListener('change', () => {
-      if (cb.checked) {
-        document.querySelectorAll('input[data-cat]').forEach(other => {
-          if (other !== cb) other.checked = false;
-        });
-      }
-    });
-  });
+  // Danh mục: cho phép chọn nhiều (không giới hạn)
 }

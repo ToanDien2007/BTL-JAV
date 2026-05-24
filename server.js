@@ -45,7 +45,11 @@ app.get('/api/products', (req, res) => {
     let params = [];
 
     if (gender) { sql += " AND gender = ?"; params.push(gender); }
-    if (cat)    { sql += " AND category_id = ?"; params.push(cat); }
+    if (cat) {
+        const cats = Array.isArray(cat) ? cat : [cat];
+        sql += ` AND category_id IN (${cats.map(() => '?').join(',')})`;
+        params.push(...cats);
+    }
     if (min && max) { sql += " AND price BETWEEN ? AND ?"; params.push(min, max); }
 
     db.query(sql, params, (err, results) => {
@@ -128,7 +132,6 @@ app.get('/api/search', (req, res) => {
     });
 });
 
-// ── Đánh giá sản phẩm ────────────────────────────────────────
 // ── Lấy bình luận + rating của sản phẩm ─────────────────────
 app.get('/api/reviews/:productId', (req, res) => {
   const pid = req.params.productId;
@@ -141,15 +144,6 @@ app.get('/api/reviews/:productId', (req, res) => {
     JOIN users u ON u.id = r.user_id
     WHERE r.product_id = ? AND r.comment IS NOT NULL AND r.comment != ''
     ORDER BY r.created_at DESC
-  `;
-
-  // Lấy điểm sao trung bình từ bảng ratings
-  const sqlRating = `
-    SELECT COUNT(*) AS count, IFNULL(AVG(rating),0) AS avg,
-           JSON_OBJECTAGG(rating, cnt) AS dist
-    FROM (
-      SELECT rating, COUNT(*) AS cnt FROM ratings WHERE product_id = ? GROUP BY rating
-    ) t
   `;
 
   db.query(sqlComments, [pid], (err, comments) => {

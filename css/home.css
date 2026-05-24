@@ -293,3 +293,52 @@
   .cart-item  { flex-wrap: wrap; }
   .item-total { min-width: unset; }
 }
+
+/* ── Utility classes dùng chung trong JS ── */
+.text-pink    { color: #ff3d7f; }
+.text-green   { color: #27ae60; }
+.text-gray    { color: #888; }
+.text-red     { color: #f00; }
+.text-bold    { font-weight: bold; }
+
+.grid-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #888;
+  padding: 40px;
+}
+.grid-loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #888;
+}
+
+.cart-empty-wrap {
+  text-align: center;
+  padding: 60px 0;
+  color: #888;
+}
+.cart-empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  display: block;
+}
+.cart-empty-text {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.discount-badge {
+  color: #ff3d7f;
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: 4px;
+}
+
+.summary-discount { color: #27ae60; }
+
+.dd-contact-icon {
+  color: #ff3d7f;
+  font-size: 11px;
+  margin-right: 4px;
+}

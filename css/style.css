@@ -348,3 +348,8 @@ footer {
 
 /* Divider */
 .dd-divider { border: none; border-top: 1px solid #f0f0f0; margin: 2px 0; }
+
+/* ── Trạng thái đã thêm vào giỏ ── */
+.btn-added {
+  background: #27ae60 !important;
+}

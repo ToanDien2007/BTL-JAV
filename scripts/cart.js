@@ -82,9 +82,9 @@ async function renderCartPage() {
   if (!cart.length) {
     main.innerHTML = `
       <h1>Giỏ hàng của bạn 🛒</h1>
-      <div style="text-align:center;padding:60px 0;color:#888">
-        <i class="fas fa-shopping-cart" style="font-size:64px;margin-bottom:16px;display:block"></i>
-        <p style="font-size:16px;margin-bottom:20px">Giỏ hàng hiện đang trống, cùng mua sắm ngay nhé!</p>
+      <div class="cart-empty-wrap">
+        <i class="fas fa-shopping-cart cart-empty-icon"></i>
+        <p class="cart-empty-text">Giỏ hàng hiện đang trống, cùng mua sắm ngay nhé!</p>
         <a href="products.html" class="btn-hero">Mua sắm ngay</a>
       </div>`;
     return;
@@ -103,14 +103,14 @@ async function renderCartPage() {
         ${discountPct > 0 ? `
         <div class="summary-tier">
           <span>Hạng thành viên:</span>
-          <strong style="color:#ff3d7f">${tierName} (−${discountPct}%)</strong>
+          <strong class="text-pink">${tierName} (−${discountPct}%)</strong>
         </div>` : ''}
         <div class="summary-row">
           <span>Tạm tính:</span>
           <strong>${formatMoney(subtotal)}</strong>
         </div>
         ${discount > 0 ? `
-        <div class="summary-row" style="color:#27ae60">
+        <div class="summary-row summary-discount">
           <span>Giảm giá hạng ${tierName}:</span>
           <strong>−${formatMoney(discount)}</strong>
         </div>` : ''}
@@ -222,7 +222,7 @@ function openCheckoutModal(user, cart) {
 
       <div class="modal-summary">
         <div class="modal-sum-row"><span>Tạm tính</span><strong>${formatMoney(sub)}</strong></div>
-        ${disc > 0 ? `<div class="modal-sum-row" style="color:#27ae60"><span>Giảm giá hạng ${tiers[disc]}</span><strong>−${formatMoney(discount)}</strong></div>` : ''}
+        ${disc > 0 ? `<div class="modal-sum-row summary-discount"><span>Giảm giá hạng ${tiers[disc]}</span><strong>−${formatMoney(discount)}</strong></div>` : ''}
         <div class="modal-sum-row modal-sum-total"><span>Tổng thanh toán</span><strong>${formatMoney(total)}</strong></div>
       </div>
 
@@ -237,7 +237,7 @@ function openCheckoutModal(user, cart) {
             <div><i class="fas fa-university"></i> <strong>MB Bank</strong></div>
             <div><i class="fas fa-user"></i> NGUYEN TOAN DIEN</div>
             <div><i class="fas fa-credit-card"></i> 0865623279</div>
-            <div><i class="fas fa-money-bill"></i> <strong style="color:#ff3d7f">${formatMoney(total)}</strong></div>
+            <div><i class="fas fa-money-bill"></i> <strong class="text-pink">${formatMoney(total)}</strong></div>
           </div>
         </div>
         <p class="modal-note">Sau khi chuyển khoản, bấm <strong>Xác nhận đặt hàng</strong> bên dưới.</p>
