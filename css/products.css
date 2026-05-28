@@ -147,3 +147,23 @@
         gap: 14px;
     }
 }
+
+.group-header {
+    user-select: none;
+    cursor: pointer;
+}
+
+/* Thêm hiệu ứng xoay mượt mà cho icon mũi tên */
+.group-header i {
+    transition: transform 0.3s ease;
+}
+
+/* Ẩn danh sách checkbox/radio khi bị thu gọn */
+.filter-group.collapsed > div:last-child {
+    display: none; 
+}
+
+/* Xoay mũi tên sang ngang 90 độ khi bị thu gọn */
+.filter-group.collapsed .group-header i {
+    transform: rotate(-90deg); 
+}

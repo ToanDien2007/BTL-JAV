@@ -69,3 +69,17 @@ function setupFilters(grid) {
 
   // Danh mục: cho phép chọn nhiều (không giới hạn)
 }
+// ── Gắn sự kiện Đóng/Mở (Accordion) cho giao diện bộ lọc ────────
+document.addEventListener('DOMContentLoaded', () => {
+  const groupHeaders = document.querySelectorAll('.group-header');
+
+  groupHeaders.forEach(header => {
+    header.addEventListener('click', function() {
+      // Tìm thẻ cha bao ngoài cùng (<div class="filter-group">)
+      const filterGroup = this.parentElement;
+      
+      // Bật/tắt class 'collapsed' để CSS tự động ẩn/hiện danh sách và xoay mũi tên
+      filterGroup.classList.toggle('collapsed');
+    });
+  });
+});
