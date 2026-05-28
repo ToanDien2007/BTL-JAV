@@ -1,41 +1,69 @@
-const path = require('path');
+require('dotenv').config();
+const path    = require('path');
 const express = require('express');
-const mysql = require('mysql2');
-const cors = require('cors');
+const mysql   = require('mysql2');
+const cors    = require('cors');
 const session = require('express-session');
 const { register, login, logout, forgotPassword, resetPassword } = require('./scripts/auth');
 
 const app = express();
 
-app.use(cors({ origin: true, credentials: true }));
+// ── CORS ─────────────────────────────────────────────────────
+// Cho phép cả localhost (dev) lẫn domain thật (prod)
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:3000'];
+
+app.use(cors({
+  origin: (origin, cb) => {
+    // Cho phép requests không có origin (Postman, mobile app)
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    cb(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
+// ── SESSION ───────────────────────────────────────────────────
 app.use(session({
-    secret: 'itoshira_secret_123',
+    secret: process.env.SESSION_SECRET || 'fallback_dev_secret_change_in_prod',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 24 * 60 * 60 * 1000 }
+    cookie: {
+        maxAge: 24 * 60 * 60 * 1000,
+        httpOnly: true,                                      // chặn JS đọc cookie
+        secure: process.env.NODE_ENV === 'production',       // bật HTTPS khi prod
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    }
 }));
 
 app.get('/', (req, res) => {
     res.redirect('/html/home.html');
 });
 
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'Toandien07',
-    database: 'itoshira_shop',
-    port: 3307
+// ── DATABASE (dùng Pool thay vì Connection để tự reconnect) ──
+const db = mysql.createPool({
+    host:     process.env.DB_HOST || 'localhost',
+    user:     process.env.DB_USER || 'root',
+    password: process.env.DB_PASS || '',
+    database: process.env.DB_NAME || 'itoshira_shop',
+    port:     Number(process.env.DB_PORT) || 3306,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
 });
 
-db.connect((err) => {
+// Kiểm tra kết nối lúc khởi động
+db.getConnection((err, conn) => {
     if (err) {
-        console.error('Lỗi kết nối MySQL (Kiểm tra lại Port 3307 và Pass): ', err.message);
+        console.error('Lỗi kết nối MySQL:', err.message);
         return;
     }
-    console.log('--- Đã kết nối MySQL thành công trên Port 3307 ---');
+    console.log(`--- Đã kết nối MySQL thành công (${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 3306}) ---`);
+    conn.release();
 });
 
 // ── Lấy tất cả sản phẩm (có filter) ──────────────────────────
@@ -136,7 +164,6 @@ app.get('/api/search', (req, res) => {
 app.get('/api/reviews/:productId', (req, res) => {
   const pid = req.params.productId;
 
-  // Lấy bình luận (chỉ những row có comment)
   const sqlComments = `
     SELECT r.id, r.comment, r.created_at, r.user_id,
            u.username, u.full_name
@@ -173,7 +200,7 @@ app.get('/api/reviews/:productId', (req, res) => {
   });
 });
 
-// ── Gửi bình luận (nhiều lần, không cần sao) ─────────────────
+// ── Gửi bình luận ─────────────────────────────────────────────
 app.post('/api/reviews', (req, res) => {
   if (!req.session?.user) return res.status(401).json({ message: 'Bạn cần đăng nhập.' });
   const { product_id, comment } = req.body;
@@ -189,13 +216,12 @@ app.post('/api/reviews', (req, res) => {
   );
 });
 
-// ── Vote sao (1 lần / sản phẩm, có thể đổi) ──────────────────
+// ── Vote sao ──────────────────────────────────────────────────
 app.post('/api/ratings', (req, res) => {
   if (!req.session?.user) return res.status(401).json({ message: 'Bạn cần đăng nhập.' });
   const { product_id, rating } = req.body;
   if (!product_id || rating < 1 || rating > 5) return res.status(400).json({ message: 'Số sao không hợp lệ.' });
 
-  // INSERT hoặc UPDATE nếu đã vote rồi
   db.query(
     'INSERT INTO ratings (product_id, user_id, rating) VALUES (?,?,?) ON DUPLICATE KEY UPDATE rating=VALUES(rating)',
     [product_id, req.session.user.id, rating],
@@ -219,13 +245,12 @@ app.get('/api/ratings/:productId', (req, res) => {
   );
 });
 
-// ── Xóa đánh giá (chỉ người tạo) ────────────────────────────
+// ── Xóa đánh giá ─────────────────────────────────────────────
 app.delete('/api/reviews/:id', (req, res) => {
   if (!req.session?.user) {
     return res.status(401).json({ message: 'Bạn cần đăng nhập.' });
   }
   const reviewId = Number(req.params.id);
-  // Chỉ cho xóa nếu là chủ sở hữu
   db.query(
     'SELECT user_id FROM reviews WHERE id = ?',
     [reviewId],
@@ -242,7 +267,7 @@ app.delete('/api/reviews/:id', (req, res) => {
   );
 });
 
-// ── Cập nhật thông tin cá nhân (phone, address) ──────────────
+// ── Cập nhật thông tin cá nhân ────────────────────────────────
 app.put('/api/me/profile', (req, res) => {
   if (!req.session?.user) return res.status(401).json({ message: 'Chưa đăng nhập.' });
   const { phone, address } = req.body;
@@ -256,7 +281,7 @@ app.put('/api/me/profile', (req, res) => {
   );
 });
 
-// ── Tạo đơn hàng + cập nhật total_spent ─────────────────────
+// ── Tạo đơn hàng ─────────────────────────────────────────────
 app.post('/api/orders', (req, res) => {
   if (!req.session?.user) {
     return res.status(401).json({ message: 'Bạn cần đăng nhập để đặt hàng.' });
@@ -276,11 +301,10 @@ app.post('/api/orders', (req, res) => {
         [vals],
         (err2) => {
           if (err2) return res.status(500).json({ message: 'Lỗi lưu sản phẩm đơn hàng.' });
-          // Cập nhật total_spent của user
           db.query(
             'UPDATE users SET total_spent = COALESCE(total_spent,0) + ? WHERE id = ?',
             [total, req.session.user.id],
-            () => {} // ignore error nếu cột chưa tồn tại
+            () => {}
           );
           res.json({ order_id: orderId, message: 'Đặt hàng thành công!' });
         }
@@ -289,18 +313,16 @@ app.post('/api/orders', (req, res) => {
   );
 });
 
-// ── /api/me – trả thông tin user đang đăng nhập ──────────────
+// ── /api/me ───────────────────────────────────────────────────
 app.get('/api/me', (req, res) => {
     if (!req.session?.user) {
         return res.status(401).json({ message: 'Chưa đăng nhập.' });
     }
-    // Lấy fresh data từ DB (kể cả total_spent)
     db.query(
-        'SELECT id, username, email, full_name, COALESCE(total_spent, 0) AS total_spent FROM users WHERE id = ?',
+        'SELECT id, username, email, full_name, phone, address, COALESCE(total_spent, 0) AS total_spent FROM users WHERE id = ?',
         [req.session.user.id],
         (err, rows) => {
             if (err) {
-                // Fallback nếu cột total_spent chưa tồn tại trong DB
                 db.query(
                     'SELECT id, username, email, full_name, phone, address FROM users WHERE id = ?',
                     [req.session.user.id],
@@ -324,7 +346,7 @@ app.post('/api/logout',          (req, res) => logout(req, res));
 app.post('/api/forgot-password', (req, res) => forgotPassword(req, res, db));
 app.post('/api/reset-password',  (req, res) => resetPassword(req, res, db));
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server Node.js đang chạy tại: http://localhost:${PORT}`);
+    console.log(`Server đang chạy tại: http://localhost:${PORT}`);
 });

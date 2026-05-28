@@ -40,8 +40,8 @@ function clearHistory() {
 async function fetchPopular(q = '') {
   try {
     const url = q
-      ? `http://localhost:3000/api/search?q=${encodeURIComponent(q)}`
-      : `http://localhost:3000/api/products?limit=8`;
+      ? `/api/search?q=${encodeURIComponent(q)}`
+      : `/api/products?limit=8`;
     const res  = await fetch(url);
     const data = await res.json();
     return (data || []).slice(0, 8);

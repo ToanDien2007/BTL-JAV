@@ -1,22 +1,40 @@
-const bcrypt    = require('bcrypt');
+const bcrypt     = require('bcrypt');
 const nodemailer = require('nodemailer');
 
+// ── Nodemailer dùng biến môi trường ──────────────────────────
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'Toandien.ptit@gmail.com',   
-    pass: '',     
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,   // App Password từ .env, KHÔNG hardcode
   },
 });
 
-// ── Lưu OTP tạm thời trong RAM ─────────────────────────────────
-// { email: { otp, expiry } }
-const otpStore = {};
+// ── OTP lưu vào DB (bảng otp_tokens) thay vì RAM ─────────────
+// Schema cần tạo:
+//   CREATE TABLE IF NOT EXISTS otp_tokens (
+//     email   VARCHAR(255) PRIMARY KEY,
+//     otp     VARCHAR(6)   NOT NULL,
+//     expiry  BIGINT       NOT NULL
+//   );
+async function saveOtp(db, email, otp, expiry) {
+  await db.promise().query(
+    'INSERT INTO otp_tokens (email, otp, expiry) VALUES (?,?,?) ON DUPLICATE KEY UPDATE otp=VALUES(otp), expiry=VALUES(expiry)',
+    [email, otp, expiry]
+  );
+}
+async function getOtp(db, email) {
+  const [rows] = await db.promise().query(
+    'SELECT otp, expiry FROM otp_tokens WHERE email = ?', [email]
+  );
+  return rows[0] || null;
+}
+async function deleteOtp(db, email) {
+  await db.promise().query('DELETE FROM otp_tokens WHERE email = ?', [email]);
+}
 
 // ==============================================================
 //  ĐĂNG KÝ
-//  POST /api/register
-//  Body: { full_name, email, username, password, confirm_password }
 // ==============================================================
 async function register(req, res, db) {
   const { full_name, email, username, password, confirm_password } = req.body;
@@ -32,7 +50,6 @@ async function register(req, res, db) {
   }
 
   try {
-    // Kiểm tra email hoặc username đã tồn tại chưa
     const [rows] = await db.promise().query(
       'SELECT id FROM users WHERE email = ? OR username = ?',
       [email, username]
@@ -56,10 +73,7 @@ async function register(req, res, db) {
 }
 
 // ==============================================================
-//  ĐĂNG NHẬP – hỗ trợ cả email lẫn username
-//  POST /api/login
-//  Body: { identifier, password }
-//  (identifier = email hoặc username)
+//  ĐĂNG NHẬP
 // ==============================================================
 async function login(req, res, db) {
   const { identifier, password } = req.body;
@@ -69,7 +83,6 @@ async function login(req, res, db) {
   }
 
   try {
-    // Tìm theo email hoặc username
     const [rows] = await db.promise().query(
       'SELECT * FROM users WHERE email = ? OR username = ?',
       [identifier, identifier]
@@ -84,11 +97,10 @@ async function login(req, res, db) {
       return res.status(401).json({ message: 'Tài khoản hoặc mật khẩu không đúng.' });
     }
 
-    // Lưu session
     req.session.user = {
-      id:       user.id,
-      username: user.username,
-      email:    user.email,
+      id:        user.id,
+      username:  user.username,
+      email:     user.email,
       full_name: user.full_name,
     };
 
@@ -101,7 +113,6 @@ async function login(req, res, db) {
 
 // ==============================================================
 //  ĐĂNG XUẤT
-//  POST /api/logout
 // ==============================================================
 function logout(req, res) {
   req.session.destroy((err) => {
@@ -112,9 +123,7 @@ function logout(req, res) {
 }
 
 // ==============================================================
-//  QUÊN MẬT KHẨU – BƯỚC 1: Gửi OTP về email
-//  POST /api/forgot-password
-//  Body: { email }
+//  QUÊN MẬT KHẨU – Gửi OTP
 // ==============================================================
 async function forgotPassword(req, res, db) {
   const { email } = req.body;
@@ -124,21 +133,19 @@ async function forgotPassword(req, res, db) {
     const [rows] = await db.promise().query(
       'SELECT id FROM users WHERE email = ?', [email]
     );
+    // Luôn trả thông báo giống nhau để bảo mật (không lộ email có tồn tại không)
     if (rows.length === 0) {
-      // Luôn trả thông báo giống nhau để bảo mật
       return res.json({ message: 'Nếu email tồn tại, mã OTP đã được gửi.' });
     }
 
-    // Tạo OTP 6 số, hết hạn sau 10 phút
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    otpStore[email] = {
-      otp,
-      expiry: Date.now() + 10 * 60 * 1000, // 10 phút
-    };
+    const otp    = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = Date.now() + 10 * 60 * 1000; // 10 phút
 
-    // Gửi email chứa OTP
+    // Lưu OTP vào DB (không mất khi server restart)
+    await saveOtp(db, email, otp, expiry);
+
     await transporter.sendMail({
-      from:    '"Itoshira Support" <Toandien.ptit@gmail.com>',
+      from:    `"Itoshira Support" <${process.env.GMAIL_USER}>`,
       to:      email,
       subject: 'Mã xác nhận đặt lại mật khẩu',
       html: `
@@ -163,9 +170,7 @@ async function forgotPassword(req, res, db) {
 }
 
 // ==============================================================
-//  QUÊN MẬT KHẨU – BƯỚC 2: Xác nhận OTP + đặt mật khẩu mới
-//  POST /api/reset-password
-//  Body: { email, otp, newPassword, confirmPassword }
+//  ĐẶT LẠI MẬT KHẨU – Xác nhận OTP
 // ==============================================================
 async function resetPassword(req, res, db) {
   const { email, otp, newPassword, confirmPassword } = req.body;
@@ -180,33 +185,32 @@ async function resetPassword(req, res, db) {
     return res.status(400).json({ message: 'Mật khẩu phải ít nhất 6 ký tự.' });
   }
 
-  // Kiểm tra OTP
-  const record = otpStore[email];
-  if (!record || Date.now() > record.expiry) {
-    delete otpStore[email];
-    return res.status(400).json({ message: 'Mã OTP đã hết hạn. Vui lòng thử lại.' });
-  }
-  if (record.otp !== otp) {
-    return res.status(400).json({ message: 'Mã OTP không đúng.' });
-  }
-
   try {
+    const record = await getOtp(db, email);
+    if (!record || Date.now() > record.expiry) {
+      await deleteOtp(db, email);
+      return res.status(400).json({ message: 'Mã OTP đã hết hạn. Vui lòng thử lại.' });
+    }
+    if (record.otp !== otp) {
+      return res.status(400).json({ message: 'Mã OTP không đúng.' });
+    }
+
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await db.promise().query(
       'UPDATE users SET password = ? WHERE email = ?',
       [hashedPassword, email]
     );
 
-    delete otpStore[email]; // Xóa OTP sau khi dùng
+    await deleteOtp(db, email);
     return res.json({ message: 'Đặt lại mật khẩu thành công!' });
   } catch (err) {
-    console.error('Chi tiết:', err);             // ← thêm dòng này
+    console.error('Lỗi reset password:', err);
     return res.status(500).json({ message: 'Lỗi server.' });
   }
 }
 
 // ==============================================================
-//  MIDDLEWARE: bảo vệ route cần đăng nhập
+//  MIDDLEWARE
 // ==============================================================
 function requireLogin(req, res, next) {
   if (req.session && req.session.user) return next();

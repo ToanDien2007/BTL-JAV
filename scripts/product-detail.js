@@ -2,7 +2,7 @@
 //  product-detail.js  –  Chi tiết sản phẩm + đánh giá
 // =============================================================
 
-const BASE = 'http://localhost:3000';
+const BASE = '';  // Dùng relative URL, tự động khớp với domain thật
 
 function formatPrice(p) {
   return Number(p).toLocaleString('vi-VN') + 'đ';

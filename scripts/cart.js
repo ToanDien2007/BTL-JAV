@@ -70,7 +70,7 @@ async function renderCartPage() {
   let discountPct = 0;
   let tierName    = '';
   try {
-    const res = await fetch('http://localhost:3000/api/me', { credentials: 'include' });
+    const res = await fetch('/api/me', { credentials: 'include' });
     if (res.ok) {
       const user = await res.json();
       discountPct = getDiscount(user.total_spent);
@@ -174,7 +174,7 @@ async function renderCartPage() {
 
   // Checkout – mở modal
   document.getElementById('btn-checkout').addEventListener('click', async () => {
-    const meRes = await fetch('http://localhost:3000/api/me', { credentials: 'include' });
+    const meRes = await fetch('/api/me', { credentials: 'include' });
     if (!meRes.ok) {
       alert('Bạn cần đăng nhập để thanh toán!');
       window.location.href = 'login.html';
@@ -269,14 +269,14 @@ function openCheckoutModal(user, cart) {
     if (!phone)   return alert('Vui lòng nhập số điện thoại.');
     if (!address) return alert('Vui lòng nhập địa chỉ giao hàng.');
 
-    await fetch('http://localhost:3000/api/me/profile', {
+    await fetch('/api/me/profile', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ phone, address }),
     });
 
-    const res = await fetch('http://localhost:3000/api/orders', {
+    const res = await fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

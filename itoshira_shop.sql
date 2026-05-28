@@ -172,3 +172,9 @@ CREATE TABLE IF NOT EXISTS `ratings` (
   CONSTRAINT `fk_ratings_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_ratings_user`    FOREIGN KEY (`user_id`)    REFERENCES `users`    (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS otp_tokens (
+  email   VARCHAR(255) PRIMARY KEY,
+  otp     VARCHAR(6)   NOT NULL,
+  expiry  BIGINT       NOT NULL
+);

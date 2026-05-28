@@ -2,7 +2,7 @@
 //  products.js  –  Load sản phẩm từ DB cho tất cả các trang
 // =============================================================
 
-const BASE = 'http://localhost:3000';
+const BASE = '';  // Dùng relative URL, tự động khớp với domain thật
 
 function formatPrice(p) {
   return Number(p).toLocaleString('vi-VN') + 'đ';
