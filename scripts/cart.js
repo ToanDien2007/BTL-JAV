@@ -58,6 +58,75 @@ function getDiscount(totalSpent) {
 function formatMoney(n) {
   return Number(n).toLocaleString('vi-VN') + 'đ';
 }
+// ── Lấy tên hạng từ total_spent ──────────────────────────────
+function getTierName(totalSpent) {
+  const s = Number(totalSpent) || 0;
+  if (s >= 10_000_000) return 'Vàng';
+  if (s >= 5_000_000)  return 'Bạc';
+  if (s >= 1_000_000)  return 'Đồng';
+  return 'Vô hạng';
+}
+
+// ── Toast thông báo lên hạng ──────────────────────────────────
+function showRankUpToast(newTier) {
+  document.getElementById('rankup-toast')?.remove();
+  const icons  = { 'Đồng': '🥉', 'Bạc': '🥈', 'Vàng': '🥇' };
+  const colors = {
+    'Đồng': 'linear-gradient(135deg,#cd7f32,#e8a96e)',
+    'Bạc':  'linear-gradient(135deg,#8e9eab,#c8d6df)',
+    'Vàng': 'linear-gradient(135deg,#f7971e,#ffd200)',
+  };
+  const toast = document.createElement('div');
+  toast.id = 'rankup-toast';
+  toast.innerHTML = `
+    <div style="font-size:38px;line-height:1">${icons[newTier] || '🎉'}</div>
+    <div style="flex:1">
+      <div style="font-size:15px;font-weight:700;margin-bottom:4px">🎊 Chúc mừng! Bạn vừa lên hạng!</div>
+      <div style="font-size:13px;opacity:.92">Bạn đã đạt hạng <strong>${newTier}</strong> — nhận ưu đãi giảm giá ngay!</div>
+    </div>
+    <button onclick="document.getElementById('rankup-toast').remove()"
+      style="background:rgba(255,255,255,.25);border:none;color:#fff;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:13px;flex-shrink:0">✕</button>
+  `;
+  toast.style.cssText = `
+    position:fixed;top:80px;right:20px;z-index:99999;
+    display:flex;align-items:center;gap:14px;
+    background:${colors[newTier]||'linear-gradient(135deg,#ff6b6b,#ff3d7f)'};
+    color:#fff;padding:16px 20px;border-radius:16px;
+    box-shadow:0 8px 32px rgba(0,0,0,.25);min-width:300px;max-width:380px;
+    font-family:inherit;
+    animation:rankupSlide .5s cubic-bezier(.175,.885,.32,1.275) forwards;
+  `;
+  if (!document.getElementById('rankup-style')) {
+    const s = document.createElement('style');
+    s.id = 'rankup-style';
+    s.textContent = `
+      @keyframes rankupSlide{from{opacity:0;transform:translateX(120px) scale(.8)}to{opacity:1;transform:translateX(0) scale(1)}}
+      @keyframes rankupOut{from{opacity:1}to{opacity:0;transform:translateX(120px)}}
+    `;
+    document.head.appendChild(s);
+  }
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    if (toast?.parentNode) {
+      toast.style.animation = 'rankupOut .4s ease forwards';
+      setTimeout(() => toast.remove(), 400);
+    }
+  }, 6000);
+}
+
+async function refreshUserAndCheckRank(oldTier) {
+  try {
+    const res = await fetch('/api/me', { credentials: 'include' });
+    if (!res.ok) return;
+    const u = await res.json();
+    const newTier = getTierName(u.total_spent);
+    const order = ['Vô hạng','Đồng','Bạc','Vàng'];
+    if (order.indexOf(newTier) > order.indexOf(oldTier)) showRankUpToast(newTier);
+    if (typeof initNavbarAuth === 'function') initNavbarAuth();
+  } catch(_) {}
+}
+
+
 
 // ── Render trang giỏ hàng ────────────────────────────────────
 async function renderCartPage() {
@@ -181,14 +250,14 @@ async function renderCartPage() {
       return;
     }
     const user = await meRes.json();
-    openCheckoutModal(user, cart);
+    openCheckoutModal(user, cart, getTierName(user.total_spent));
   });
 }
 
 // =============================================================
 //  CHECKOUT MODAL
 // =============================================================
-function openCheckoutModal(user, cart) {
+function openCheckoutModal(user, cart, oldTier = 'Vô hạng') {
   document.getElementById('checkout-modal')?.remove();
 
   const disc     = getDiscount(user.total_spent);
@@ -297,6 +366,7 @@ function openCheckoutModal(user, cart) {
       saveCart([]);
       alert(`✅ Đặt hàng thành công! Mã đơn: #${data.order_id}`);
       renderCartPage();
+      refreshUserAndCheckRank(oldTier);
     } else {
       alert(data.message || 'Đặt hàng thất bại.');
     }

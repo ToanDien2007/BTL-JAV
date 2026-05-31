@@ -90,7 +90,7 @@ async function loadHome() {
   if (!grid) return;
   grid.innerHTML = '<p class="grid-loading">Đang tải...</p>';
   const data = await apiFetch(`${BASE}/api/products`);
-  render(grid, data.slice(0, 5), 'MỚI');
+  render(grid, data.slice(0, 20), 'MỚI');
 }
 
 async function loadTrend() {
