@@ -2,7 +2,7 @@
 //  products.js  –  Load sản phẩm từ DB cho tất cả các trang
 // =============================================================
 
-const BASE = '';  // Dùng relative URL, tự động khớp với domain thật
+const BASE = '';
 
 function formatPrice(p) {
   return Number(p).toLocaleString('vi-VN') + 'đ';
@@ -11,7 +11,6 @@ function formatPrice(p) {
 function createCard(p, badgeText = 'MỚI') {
   const card = document.createElement('div');
   card.className = 'card';
-  card.style.cursor = 'pointer';
 
   let priceHtml = '';
   if (p.discount_percent > 0) {
@@ -38,32 +37,9 @@ function createCard(p, badgeText = 'MỚI') {
     </div>
   `;
 
-  // Click vào card → trang chi tiết
-  card.addEventListener('click', (e) => {
-    // Không navigate nếu bấm vào button
-    if (e.target.closest('button')) return;
+  // Click vào card hoặc nút → đều vào trang chi tiết
+  card.addEventListener('click', () => {
     window.location.href = `product-detail.html?id=${p.id}`;
-  });
-
-  // Nút Mua ngay
-  card.querySelector('.buy').addEventListener('click', (e) => {
-    e.stopPropagation();
-    window.location.href = `product-detail.html?id=${p.id}`;
-  });
-
-  // Nút Thêm vào giỏ
-  card.querySelector('.cart').addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (window.cartUtils) {
-      window.cartUtils.addToCart(p, 1);
-      const btn = e.currentTarget;
-      btn.textContent = '✓ Đã thêm';
-      btn.classList.add('btn-added');
-      setTimeout(() => {
-        btn.textContent = 'Thêm vào giỏ';
-        btn.classList.remove('btn-added');
-      }, 1200);
-    }
   });
 
   return card;
@@ -90,7 +66,7 @@ async function loadHome() {
   if (!grid) return;
   grid.innerHTML = '<p class="grid-loading">Đang tải...</p>';
   const data = await apiFetch(`${BASE}/api/products`);
-  render(grid, data.slice(0, 20), 'MỚI');
+  render(grid, data.slice(0, 8), 'MỚI');
 }
 
 async function loadTrend() {
@@ -115,7 +91,6 @@ async function doRender(grid, q, filters) {
   if (q) {
     data = await apiFetch(`${BASE}/api/search?q=${encodeURIComponent(q)}`);
   } else {
-    // URLSearchParams không xử lý array → build thủ công
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([k, v]) => {
       if (Array.isArray(v)) v.forEach(val => params.append(k, val));

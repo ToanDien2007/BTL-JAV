@@ -126,6 +126,59 @@ async function refreshUserAndCheckRank(oldTier) {
   } catch(_) {}
 }
 
+// ── Toast thông báo chung (thay thế alert) ────────────────────
+function showToast(msg, type = 'success') {
+  document.getElementById('itoshira-toast')?.remove();
+  const cfg = {
+    success: { icon: '✅', bg: 'linear-gradient(135deg,#11998e,#38ef7d)', },
+    error:   { icon: '❌', bg: 'linear-gradient(135deg,#e53935,#ff6b6b)', },
+    info:    { icon: 'ℹ️', bg: 'linear-gradient(135deg,#2196f3,#64b5f6)', },
+    warn:    { icon: '⚠️', bg: 'linear-gradient(135deg,#f7971e,#ffd200)', },
+  };
+  const { icon, bg } = cfg[type] || cfg.info;
+
+  const t = document.createElement('div');
+  t.id = 'itoshira-toast';
+  t.innerHTML = `
+    <span class="toast-icon">${icon}</span>
+    <span class="toast-msg">${msg}</span>
+    <button class="toast-close" onclick="document.getElementById('itoshira-toast').remove()">✕</button>
+  `;
+  t.className = `itoshira-toast itoshira-toast--${type}`;
+  t.style.setProperty('--toast-bg', bg);
+
+  if (!document.getElementById('itoshira-toast-style')) {
+    const s = document.createElement('style');
+    s.id = 'itoshira-toast-style';
+    s.textContent = `
+      @keyframes toastIn  { from { opacity:0; transform:translateX(120px) scale(.85); } to { opacity:1; transform:translateX(0) scale(1); } }
+      @keyframes toastOut { from { opacity:1; } to { opacity:0; transform:translateX(120px); } }
+      .itoshira-toast {
+        position: fixed; top: 80px; right: 20px; z-index: 999999;
+        display: flex; align-items: center; gap: 12px;
+        background: var(--toast-bg); color: white;
+        padding: 14px 18px; border-radius: 14px;
+        box-shadow: 0 8px 32px rgba(0,0,0,.2);
+        max-width: 360px; min-width: 260px;
+        font-family: inherit; font-size: 14px; line-height: 1.4;
+        animation: toastIn .4s cubic-bezier(.175,.885,.32,1.275) forwards;
+      }
+      .toast-icon  { font-size: 20px; flex-shrink: 0; }
+      .toast-msg   { flex: 1; font-weight: 500; }
+      .toast-close {
+        background: rgba(255,255,255,.25); border: none; color: white;
+        width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+        font-size: 12px; flex-shrink: 0; transition: background .2s;
+      }
+      .toast-close:hover { background: rgba(255,255,255,.4); }
+    `;
+    document.head.appendChild(s);
+  }
+  document.body.appendChild(t);
+  setTimeout(() => {
+    if (t?.parentNode) { t.style.animation = 'toastOut .35s ease forwards'; setTimeout(() => t.remove(), 350); }
+  }, type === 'error' ? 5000 : 3500);
+}
 
 
 // ── Render trang giỏ hàng ────────────────────────────────────
@@ -245,8 +298,8 @@ async function renderCartPage() {
   document.getElementById('btn-checkout').addEventListener('click', async () => {
     const meRes = await fetch('/api/me', { credentials: 'include' });
     if (!meRes.ok) {
-      alert('Bạn cần đăng nhập để thanh toán!');
-      window.location.href = 'login.html';
+      showToast('Bạn cần đăng nhập để thanh toán!', 'warn');
+      setTimeout(() => { window.location.href = 'login.html'; }, 2000);
       return;
     }
     const user = await meRes.json();
@@ -272,6 +325,7 @@ function openCheckoutModal(user, cart, oldTier = 'Vô hạng') {
   modal.innerHTML = `
     <div class="modal-box">
       <button class="modal-close" id="modal-close"><i class="fas fa-times"></i></button>
+      <div class="modal-inner">
       <h2 class="modal-title">Xác nhận đặt hàng</h2>
 
       <div class="modal-section">
@@ -315,6 +369,7 @@ function openCheckoutModal(user, cart, oldTier = 'Vô hạng') {
       <button class="btn-checkout modal-confirm-btn" id="modal-confirm">
         <i class="fas fa-check-circle"></i> Xác nhận đặt hàng
       </button>
+      </div>
     </div>
   `;
 
@@ -335,8 +390,8 @@ function openCheckoutModal(user, cart, oldTier = 'Vô hạng') {
   document.getElementById('modal-confirm').addEventListener('click', async () => {
     const phone   = document.getElementById('co-phone').value.trim();
     const address = document.getElementById('co-address').value.trim();
-    if (!phone)   return alert('Vui lòng nhập số điện thoại.');
-    if (!address) return alert('Vui lòng nhập địa chỉ giao hàng.');
+    if (!phone)   return showToast('Vui lòng nhập số điện thoại.', 'warn');
+    if (!address) return showToast('Vui lòng nhập địa chỉ giao hàng.', 'warn');
 
     await fetch('/api/me/profile', {
       method: 'PUT',
@@ -352,6 +407,8 @@ function openCheckoutModal(user, cart, oldTier = 'Vô hạng') {
       body: JSON.stringify({
         items: cart.map(i => ({
           product_id: i.id,
+          color:      i.color || '',
+          size:       i.size  || '',
           quantity:   i.qty,
           unit_price: Math.round(i.price * (1 - disc / 100)),
           line_total: Math.round(i.price * i.qty * (1 - disc / 100)),
@@ -364,11 +421,23 @@ function openCheckoutModal(user, cart, oldTier = 'Vô hạng') {
     if (res.ok) {
       modal.remove();
       saveCart([]);
-      alert(`✅ Đặt hàng thành công! Mã đơn: #${data.order_id}`);
+      showToast(`Đặt hàng thành công! Mã đơn: #${data.order_id}`, 'success');
       renderCartPage();
       refreshUserAndCheckRank(oldTier);
     } else {
-      alert(data.message || 'Đặt hàng thất bại.');
+      // Nếu lỗi do hết hàng, cập nhật lại giỏ
+      if (data.stock !== undefined) {
+        const c = getCart();
+        const key = `${data.product_id}_${data.color}_${data.size}`;
+        const idx = c.findIndex(i => i.key === key);
+        if (idx >= 0) {
+          if (data.stock === 0) { c.splice(idx, 1); }
+          else { c[idx].qty = data.stock; }
+          saveCart(c);
+          renderCartPage();
+        }
+      }
+      showToast(data.message || 'Đặt hàng thất bại.', 'error');
     }
   });
 }

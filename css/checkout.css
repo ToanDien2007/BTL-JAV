@@ -14,40 +14,69 @@
   animation: ddFade 0.2s ease;
 }
 
+/*
+  Fix border-radius + scrollbar:
+  - .modal-box    : chỉ lo bo tròn + shadow, KHÔNG overflow
+  - .modal-inner  : wrapper bên trong chịu scroll
+  Scrollbar sẽ nằm bên trong góc bo, không cắt mất radius
+*/
 .modal-box {
   background: white;
   border-radius: 20px;
-  padding: 28px 30px;
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
-  overflow-y: auto;
   position: relative;
   box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;          /* clip con bên trong theo border-radius */
 }
+
+.modal-inner {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 28px 30px 32px;
+  flex: 1;
+}
+
+/* Scrollbar đẹp — nằm trong modal-inner nên không đụng border-radius */
+.modal-inner::-webkit-scrollbar       { width: 5px; }
+.modal-inner::-webkit-scrollbar-track { background: transparent; }
+.modal-inner::-webkit-scrollbar-thumb {
+  background: #e0e0e0;
+  border-radius: 99px;
+}
+.modal-inner::-webkit-scrollbar-thumb:hover { background: #ff3d7f; }
 
 .modal-close {
   position: absolute;
-  top: 14px; right: 14px;
+  top: 14px;
+  right: 14px;
   background: #f5f5f5;
   border: none;
   border-radius: 50%;
-  width: 34px; height: 34px;
+  width: 34px;
+  height: 34px;
   cursor: pointer;
   font-size: 14px;
   color: #555;
   transition: background 0.2s;
+  z-index: 1;
 }
 .modal-close:hover { background: #ffe0e8; color: #e53935; }
 
-.modal-title {
-  font-size: 20px;
-  font-weight: bold;
-  margin: 0 0 20px;
+.modal-title  { font-size: 20px; font-weight: bold; margin: 0 0 20px; }
+.modal-section { margin-bottom: 14px; }
+
+.modal-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 6px;
 }
 
-.modal-section      { margin-bottom: 14px; }
-.modal-label        { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
 .modal-input {
   width: 100%;
   padding: 11px 14px;
@@ -59,38 +88,35 @@
   transition: border-color 0.2s;
   font-family: inherit;
 }
-.modal-input:focus          { border-color: #ff3d7f; }
-.modal-input[readonly]      { background: #fafafa; color: #888; }
+.modal-input:focus     { border-color: #ff3d7f; }
+.modal-input[readonly] { background: #fafafa; color: #888; }
 
 .modal-divider { border: none; border-top: 1px solid #f0f0f0; margin: 16px 0; }
 
-.modal-summary             { display: flex; flex-direction: column; gap: 6px; }
-.modal-sum-row             { display: flex; justify-content: space-between; font-size: 14px; color: #444; padding: 3px 0; }
-.modal-sum-total           { font-size: 16px; font-weight: bold; color: #0d0c22; padding-top: 6px; }
+.modal-summary  { display: flex; flex-direction: column; gap: 6px; }
+.modal-sum-row  { display: flex; justify-content: space-between; font-size: 14px; color: #444; padding: 3px 0; }
+.modal-sum-total { font-size: 16px; font-weight: bold; color: #0d0c22; padding-top: 6px; }
 
-.modal-qr-wrap {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  margin: 12px 0;
-}
+.modal-qr-wrap { display: flex; gap: 16px; align-items: center; margin: 12px 0; }
 .modal-qr-zoom { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
 .modal-qr-zoom:hover { transform: scale(1.04); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
 
 .modal-qr {
-  width: 130px; height: 130px;
+  width: 130px;
+  height: 130px;
   border-radius: 10px;
   border: 1px solid #eee;
   object-fit: contain;
   flex-shrink: 0;
 }
-.modal-bank-info             { display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: #333; }
-.modal-bank-info i           { color: #ff3d7f; width: 16px; }
-.modal-note                  { font-size: 12px; color: #888; margin: 4px 0 0; line-height: 1.5; }
-.modal-confirm-btn           { width: 100%; margin-top: 16px; }
+
+.modal-bank-info { display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: #333; }
+.modal-bank-info i { color: #ff3d7f; width: 16px; }
+.modal-note      { font-size: 12px; color: #888; margin: 4px 0 0; line-height: 1.5; }
+.modal-confirm-btn { width: 100%; margin-top: 16px; }
 
 @media (max-width: 480px) {
-  .modal-box     { padding: 20px 16px; }
+  .modal-inner   { padding: 20px 16px; }
   .modal-qr-wrap { flex-direction: column; }
   .modal-qr      { width: 180px; height: 180px; }
 }

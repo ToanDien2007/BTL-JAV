@@ -277,3 +277,30 @@
 /* ── Utility classes đánh giá ── */
 .text-gray-sm    { color: #888; padding: 10px 0; }
 .text-error      { color: #f00; }
+/* ── Stock display ───────────────────────────────────────────── */
+.stock-display  { margin: 8px 0 4px; font-size: 13px; font-weight: 600; min-height: 20px; }
+.stock-ok       { color: #27ae60; }
+.stock-low      { color: #e67e22; }
+.stock-empty    { color: #e53935; }
+
+/* Option btn disabled khi hết hàng */
+.option-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+/* Buttons disabled */
+#btn-cart[disabled],
+#btn-buy[disabled]  { opacity: 0.5; cursor: not-allowed; }
+
+/* Shake animation khi bấm + quá max */
+@keyframes qtyShake {
+  0%, 100% { transform: translateX(0); }
+  25%       { transform: translateX(-4px); }
+  75%       { transform: translateX(4px); }
+}
+.qty-shake { animation: qtyShake 0.3s ease; }
+
+/* Utility classes */
+.hidden     { display: none !important; }
+.star-display { font-size: 16px; }
+.star-on    { color: #f5a623; }
+.star-off   { color: #ddd; }
+.form-error-msg { color: #e53935; text-align: center; margin: 8px 0 0; font-size: 14px; }
