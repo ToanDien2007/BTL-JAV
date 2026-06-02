@@ -316,14 +316,19 @@ async function loadReviews() {
     }).join('');
 
     list.querySelectorAll('.btn-delete-review').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (!confirm('Xóa bình luận này?')) return;
-        const delRes  = await fetch(`${BASE}/api/reviews/${btn.dataset.id}`, {
-          method: 'DELETE', credentials: 'include',
-        });
-        const delData = await delRes.json();
-        if (delRes.ok) btn.closest('.review-item').remove();
-        else alert(delData.message || 'Xóa thất bại.');
+      btn.addEventListener('click', () => {
+        window.showConfirm?.('Bạn có chắc muốn xóa bình luận này?', async () => {
+          const delRes  = await fetch(`${BASE}/api/reviews/${btn.dataset.id}`, {
+            method: 'DELETE', credentials: 'include',
+          });
+          const delData = await delRes.json();
+          if (delRes.ok) {
+            btn.closest('.review-item').remove();
+            window.showToast?.('Đã xóa bình luận.', 'success');
+          } else {
+            window.showToast?.(delData.message || 'Xóa thất bại.', 'error');
+          }
+        }, { okText: 'Xóa', icon: '🗑️' });
       });
     });
   } catch {
@@ -340,10 +345,21 @@ async function checkLogin() {
     document.getElementById('review-form').classList.remove('hidden');
     document.getElementById('review-login-hint').classList.add('hidden');
   } catch {
-    document.getElementById('btn-submit-review').classList.add('hidden');
-    document.getElementById('review-comment').classList.add('hidden');
-    document.getElementById('star-input').classList.add('hidden');
-    document.getElementById('review-login-hint').classList.remove('hidden');
+    // Ẩn form, hiện banner đăng nhập đẹp
+    const form = document.getElementById('review-form');
+    form.innerHTML = `
+      <div class="login-required-banner">
+        <div class="login-req-icon">🔒</div>
+        <div class="login-req-content">
+          <p class="login-req-title">Đăng nhập để viết đánh giá</p>
+          <p class="login-req-sub">Chia sẻ trải nghiệm của bạn về sản phẩm này với cộng đồng Itoshira.</p>
+          <div class="login-req-btns">
+            <a href="login.html" class="login-req-btn-primary">Đăng nhập</a>
+            <a href="register.html" class="login-req-btn-secondary">Tạo tài khoản</a>
+          </div>
+        </div>
+      </div>
+    `;
   }
 }
 
@@ -392,7 +408,7 @@ document.querySelectorAll('.star').forEach(star => {
 // ── Gửi bình luận ────────────────────────────────────────────
 document.getElementById('btn-submit-review').addEventListener('click', async () => {
   const comment = document.getElementById('review-comment').value.trim();
-  if (!comment) return alert('Vui lòng nhập bình luận.');
+  if (!comment) return window.showToast?.('Vui lòng nhập bình luận.', 'warn');
   const res  = await fetch(`${BASE}/api/reviews`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -400,8 +416,8 @@ document.getElementById('btn-submit-review').addEventListener('click', async () 
     body: JSON.stringify({ product_id: productId, comment }),
   });
   const data = await res.json();
-  if (res.ok) { document.getElementById('review-comment').value = ''; loadReviews(); }
-  else alert(data.message || 'Gửi thất bại.');
+  if (res.ok) { document.getElementById('review-comment').value = ''; window.showToast?.('Gửi đánh giá thành công!', 'success'); loadReviews(); }
+  else window.showToast?.(data.message || 'Gửi thất bại.', 'error');
 });
 
 // ── Khởi chạy ────────────────────────────────────────────────

@@ -398,6 +398,79 @@ app.post('/api/orders', requireAuth, (req, res) => {
   });
 });
 
+
+// =============================================================
+//  ORDER HISTORY
+// =============================================================
+app.get('/api/orders', requireAuth, (req, res) => {
+  const uid = req.session.user.id;
+  db.query(
+    `SELECT o.id, o.status, o.subtotal, o.shipping_fee, o.total, o.note, o.created_at
+     FROM orders o
+     WHERE o.user_id = ?
+     ORDER BY o.created_at DESC`,
+    [uid],
+    (err, orders) => {
+      if (err) return res.status(500).json({ message: err.message });
+      if (!orders.length) return res.json([]);
+      const ids = orders.map(o => o.id);
+      db.query(
+        `SELECT oi.order_id, oi.product_id, oi.color, oi.size, oi.quantity, oi.unit_price, oi.line_total,
+                p.name, p.image_url
+         FROM order_items oi
+         LEFT JOIN products p ON p.id = oi.product_id
+         WHERE oi.order_id IN (${ids.map(() => '?').join(',')})`,
+        ids,
+        (err2, items) => {
+          if (err2) return res.status(500).json({ message: err2.message });
+          const itemMap = {};
+          items.forEach(i => { if (!itemMap[i.order_id]) itemMap[i.order_id] = []; itemMap[i.order_id].push(i); });
+          res.json(orders.map(o => ({ ...o, items: itemMap[o.id] || [] })));
+        }
+      );
+    }
+  );
+});
+
+app.patch('/api/orders/:id/cancel', requireAuth, (req, res) => {
+  const orderId = Number(req.params.id);
+  const uid     = req.session.user.id;
+  db.getConnection((err, conn) => {
+    if (err) return res.status(500).json({ message: 'Loi ket noi DB.' });
+    conn.query('SELECT status, total FROM orders WHERE id = ? AND user_id = ?', [orderId, uid], (err2, rows) => {
+      if (err2 || !rows.length) { conn.release(); return res.status(404).json({ message: 'Khong tim thay don hang.' }); }
+      if (rows[0].status !== 'pending') { conn.release(); return res.status(400).json({ message: 'Chi co the huy don hang dang cho xu ly.' }); }
+      conn.beginTransaction((txErr) => {
+        if (txErr) { conn.release(); return res.status(500).json({ message: 'Loi transaction.' }); }
+        conn.query('SELECT product_id, color, size, quantity FROM order_items WHERE order_id = ?', [orderId], (err3, items) => {
+          if (err3) return rollback('Loi lay items.');
+          let i = 0;
+          function restoreNext() {
+            if (i >= items.length) return updateOrder();
+            const item = items[i++];
+            conn.query('UPDATE product_variants SET stock = stock + ? WHERE product_id = ? AND color = ? AND size = ?',
+              [item.quantity, item.product_id, item.color, item.size],
+              (e) => { if (e) return rollback('Loi hoan kho.'); restoreNext(); });
+          }
+          function updateOrder() {
+            conn.query('UPDATE orders SET status = ? WHERE id = ?', ['cancelled', orderId], (e) => {
+              if (e) return rollback('Loi cap nhat don.');
+              conn.query('UPDATE users SET total_spent = GREATEST(0, COALESCE(total_spent,0) - ?) WHERE id = ?',
+                [rows[0].total, uid],
+                (e2) => {
+                  if (e2) return rollback('Loi cap nhat chi tieu.');
+                  conn.commit((ce) => { conn.release(); if (ce) return res.status(500).json({ message: 'Loi commit.' }); res.json({ message: 'Da huy don hang thanh cong.' }); });
+                });
+            });
+          }
+          function rollback(msg) { conn.rollback(() => { conn.release(); res.status(500).json({ message: msg }); }); }
+          restoreNext();
+        });
+      });
+    });
+  });
+});
+
 // =============================================================
 //  AUTH ROUTES
 // =============================================================

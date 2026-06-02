@@ -353,3 +353,11 @@ footer {
 .btn-added {
   background: #27ae60 !important;
 }
+/* ── Nút lịch sử mua hàng trong dropdown ── */
+.dd-orders {
+  color: #0d0c22 !important;
+  cursor: pointer !important;
+  transition: background 0.2s;
+}
+.dd-orders:hover { background: #f0f4ff !important; color: #ff3d7f !important; }
+.dd-orders .dd-icon { color: #ff3d7f; }

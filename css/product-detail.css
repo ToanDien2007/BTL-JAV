@@ -304,3 +304,66 @@
 .star-on    { color: #f5a623; }
 .star-off   { color: #ddd; }
 .form-error-msg { color: #e53935; text-align: center; margin: 8px 0 0; font-size: 14px; }
+/* ── Banner đăng nhập để đánh giá ──────────────────────────── */
+.login-required-banner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: linear-gradient(135deg, #f8f4ff, #fff0f6);
+  border: 1.5px solid #f0d8ff;
+  border-radius: 16px;
+  padding: 24px 28px;
+}
+
+.login-req-icon {
+  font-size: 36px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.login-req-content { flex: 1; }
+
+.login-req-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 6px;
+}
+
+.login-req-sub {
+  font-size: 13px;
+  color: #777;
+  margin: 0 0 16px;
+  line-height: 1.55;
+}
+
+.login-req-btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.login-req-btn-primary,
+.login-req-btn-secondary {
+  display: inline-block;
+  padding: 9px 22px;
+  border-radius: 25px;
+  font-size: 13px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+.login-req-btn-primary:hover,
+.login-req-btn-secondary:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.login-req-btn-primary  { background: #0d0c22; color: white; }
+.login-req-btn-secondary { background: #ff3d7f; color: white; }
+
+@media (max-width: 480px) {
+  .login-required-banner { flex-direction: column; text-align: center; padding: 20px 18px; }
+  .login-req-btns { justify-content: center; }
+}
