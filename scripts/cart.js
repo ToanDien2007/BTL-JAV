@@ -46,25 +46,15 @@ function updateCartBadge() {
   });
 }
 
-// ── Lấy discount % từ total_spent ────────────────────────────
+// ── Helpers dùng chung (fallback nếu thiếu shared.js) ─────────
 function getDiscount(totalSpent) {
-  const s = Number(totalSpent) || 0;
-  if (s >= 10_000_000) return 15;
-  if (s >= 5_000_000)  return 10;
-  if (s >= 1_000_000)  return 5;
-  return 0;
+  return window.itoshira?.getDiscountPct ? window.itoshira.getDiscountPct(totalSpent) : 0;
 }
-
 function formatMoney(n) {
-  return Number(n).toLocaleString('vi-VN') + 'đ';
+  return window.itoshira?.formatMoney ? window.itoshira.formatMoney(n, 'đ') : (Number(n).toLocaleString('vi-VN') + 'đ');
 }
-// ── Lấy tên hạng từ total_spent ──────────────────────────────
 function getTierName(totalSpent) {
-  const s = Number(totalSpent) || 0;
-  if (s >= 10_000_000) return 'Vàng';
-  if (s >= 5_000_000)  return 'Bạc';
-  if (s >= 1_000_000)  return 'Đồng';
-  return 'Vô hạng';
+  return window.itoshira?.getTierName ? window.itoshira.getTierName(totalSpent) : 'Vô hạng';
 }
 
 // ── Toast thông báo lên hạng ──────────────────────────────────

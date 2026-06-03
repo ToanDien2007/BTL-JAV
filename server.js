@@ -29,7 +29,7 @@ app.use(express.json());
 app.use('/html',    express.static(path.join(__dirname, 'html')));
 app.use('/css',     express.static(path.join(__dirname, 'css')));
 app.use('/scripts', express.static(path.join(__dirname, 'scripts')));
-app.use('/images',  express.static(path.join(__dirname, 'images')));
+app.use('/images',  express.static(path.join(__dirname, 'assets/images/products')));
 
 // ── SESSION ───────────────────────────────────────────────────
 app.use(session({
@@ -73,6 +73,18 @@ function requireAuth(req, res, next) {
 // =============================================================
 //  PRODUCTS
 // =============================================================
+function formatProductImage(p) {
+  if (!p) return p;
+  if (p.image_url && !p.image_url.startsWith('http') && !p.image_url.startsWith('/')) {
+    p.image_url = `/images/${p.image_url}`;
+  }
+  return p;
+}
+function formatProducts(list) {
+  if (!Array.isArray(list)) return [];
+  return list.map(formatProductImage);
+}
+
 app.get('/api/products', (req, res) => {
   const { gender, cat, min, max } = req.query;
   let sql    = 'SELECT * FROM products WHERE is_active = 1';
@@ -88,7 +100,7 @@ app.get('/api/products', (req, res) => {
 
   db.query(sql, params, (err, results) => {
     if (err) return res.status(500).json({ message: err.message });
-    res.json(results);
+    res.json(formatProducts(results));
   });
 });
 
@@ -97,7 +109,7 @@ app.get('/api/products/trending', (req, res) => {
     'SELECT * FROM products WHERE is_active = 1 AND is_trending = 1',
     (err, results) => {
       if (err) return res.status(500).json({ message: err.message });
-      res.json(results);
+      res.json(formatProducts(results));
     }
   );
 });
@@ -107,7 +119,7 @@ app.get('/api/products/sale', (req, res) => {
     'SELECT * FROM products WHERE is_active = 1 AND discount_percent > 0 ORDER BY discount_percent DESC',
     (err, results) => {
       if (err) return res.status(500).json({ message: err.message });
-      res.json(results);
+      res.json(formatProducts(results));
     }
   );
 });
@@ -119,7 +131,7 @@ app.get('/api/products/:id', (req, res) => {
   db.query('SELECT * FROM products WHERE id = ? LIMIT 1', [id], (err, results) => {
     if (err) return res.status(500).json({ message: err.message });
     if (!results.length) return res.status(404).json({ message: 'Product not found' });
-    res.json(results[0]);
+    res.json(formatProductImage(results[0]));
   });
 });
 
@@ -155,7 +167,7 @@ function searchByLike(query, res) {
   `;
   db.query(sql, [...likeParams, `%${query}%`], (err, results) => {
     if (err) return res.status(500).json({ message: err.message });
-    res.json(results || []);
+    res.json(formatProducts(results || []));
   });
 }
 
@@ -173,7 +185,7 @@ app.get('/api/search', (req, res) => {
 
   db.query(ftSql, [ftTerms, ftTerms], (err, results) => {
     if (err || !results.length) return searchByLike(query, res);
-    res.json(results);
+    res.json(formatProducts(results));
   });
 });
 
@@ -424,7 +436,14 @@ app.get('/api/orders', requireAuth, (req, res) => {
         (err2, items) => {
           if (err2) return res.status(500).json({ message: err2.message });
           const itemMap = {};
-          items.forEach(i => { if (!itemMap[i.order_id]) itemMap[i.order_id] = []; itemMap[i.order_id].push(i); });
+          items.forEach(i => {
+            if (!itemMap[i.order_id]) itemMap[i.order_id] = [];
+            const formatted = {
+              ...i,
+              image_url: i.image_url && !i.image_url.startsWith('http') && !i.image_url.startsWith('/') ? `/images/${i.image_url}` : i.image_url
+            };
+            itemMap[i.order_id].push(formatted);
+          });
           res.json(orders.map(o => ({ ...o, items: itemMap[o.id] || [] })));
         }
       );

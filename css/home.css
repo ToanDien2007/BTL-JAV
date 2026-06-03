@@ -15,7 +15,7 @@
     border: 1px solid #eee;
     border-radius: 12px;
     padding: 15px;
-    background: white;
+    background: pink;
     text-align: center;
     overflow: hidden;
     transition: 0.3s;
@@ -35,7 +35,7 @@
 .card img {
     width: 100%;
     display:block;
-    height: auto;
+    height: 200px;
     object-fit: cover;
     border-radius: 10px;
     transition: 0.3s;
