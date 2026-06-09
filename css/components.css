@@ -1,0 +1,386 @@
+/* =============================================================
+   components.css – CSS tách ra từ JS + các component dùng chung
+   Bao gồm: Toast, Confirm Dialog, Order History Modal, Rankup Toast
+   ============================================================= */
+
+/* =============================================================
+   TOAST SYSTEM (từ toast.js)
+   ============================================================= */
+
+#itoshira-toast-wrap {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483647;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+@keyframes toastDrop {
+  from { opacity: 0; transform: translateY(-28px) scale(.92); }
+  to   { opacity: 1; transform: translateY(0)     scale(1);   }
+}
+@keyframes toastFadeUp {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-14px); }
+}
+
+.itoshira-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: var(--toast-bg);
+  color: white;
+  padding: 13px 18px;
+  border-radius: 14px;
+  box-shadow: 0 6px 28px rgba(0,0,0,.22);
+  max-width: min(380px, calc(100vw - 32px));
+  min-width: 240px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  animation: toastDrop .38s cubic-bezier(.22,.68,0,1.2) forwards;
+}
+.itoshira-toast.removing {
+  animation: toastFadeUp .3s ease forwards;
+}
+
+.toast-icon  { font-size: 19px; flex-shrink: 0; }
+.toast-msg   { flex: 1; font-weight: 500; }
+.toast-close {
+  background: rgba(255,255,255,.22);
+  border: none;
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 11px;
+  flex-shrink: 0;
+  transition: background .2s;
+  line-height: 22px;
+  text-align: center;
+  padding: 0;
+}
+.toast-close:hover { background: rgba(255,255,255,.42); }
+
+/* =============================================================
+   CONFIRM DIALOG (từ toast.js)
+   ============================================================= */
+
+@keyframes confirmIn {
+  from { opacity: 0; transform: translateY(-20px) scale(.93); }
+  to   { opacity: 1; transform: translateY(0)      scale(1);  }
+}
+
+#itoshira-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 2147483646;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 120px;
+  backdrop-filter: blur(2px);
+}
+
+#itoshira-confirm-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 30px 22px;
+  max-width: 360px;
+  width: calc(100vw - 40px);
+  box-shadow: 0 12px 40px rgba(0,0,0,.2);
+  animation: confirmIn .3s cubic-bezier(.22,.68,0,1.2) forwards;
+  text-align: center;
+}
+#itoshira-confirm-box .confirm-icon { font-size: 36px; margin-bottom: 10px; }
+#itoshira-confirm-box .confirm-msg  {
+  font-size: 15px;
+  color: #222;
+  margin-bottom: 22px;
+  line-height: 1.55;
+}
+#itoshira-confirm-box .confirm-btns {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+#itoshira-confirm-box .confirm-btns button {
+  flex: 1;
+  padding: 11px 0;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity .2s;
+}
+#itoshira-confirm-box .confirm-btns button:hover { opacity: .82; }
+#itoshira-confirm-box .btn-ok     { background: #0d0c22; color: white; }
+#itoshira-confirm-box .btn-cancel { background: #f0f0f0; color: #555; }
+
+/* =============================================================
+   ORDER HISTORY MODAL (từ auth-ui.js)
+   ============================================================= */
+
+#oh-modal *, #oh-modal *::before, #oh-modal *::after {
+  box-sizing: border-box;
+}
+
+/* Overlay */
+#oh-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 2147483640;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 60px 16px 24px;
+  backdrop-filter: blur(3px);
+  animation: ddFade .25s ease;
+}
+
+/* Modal */
+@keyframes ohSlideIn {
+  from { opacity: 0; transform: translateY(-24px) scale(.96); }
+  to   { opacity: 1; transform: translateY(0)     scale(1);   }
+}
+
+#oh-modal {
+  background: #fff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 700px;
+  max-height: calc(100vh - 84px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  animation: ohSlideIn .3s cubic-bezier(.22,.68,0,1.2);
+  overflow: hidden;
+}
+
+/* Header */
+#oh-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+#oh-header h2 { margin: 0; font-size: 18px; color: #0d0c22; }
+#oh-close {
+  background: #f5f5f5;
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  color: #555;
+  transition: background .2s;
+}
+#oh-close:hover { background: #ff3d7f; color: white; }
+
+/* Body */
+#oh-body {
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: #e0e0e0 transparent;
+}
+
+/* Shared scrollbar — dùng cho #oh-body và .modal-inner */
+#oh-body::-webkit-scrollbar,
+.modal-inner::-webkit-scrollbar       { width: 5px; }
+#oh-body::-webkit-scrollbar-track,
+.modal-inner::-webkit-scrollbar-track { background: transparent; }
+#oh-body::-webkit-scrollbar-thumb,
+.modal-inner::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 99px; }
+#oh-body::-webkit-scrollbar-thumb:hover,
+.modal-inner::-webkit-scrollbar-thumb:hover { background: #ff3d7f; }
+
+/* Loading / empty */
+.oh-loading, .oh-empty {
+  text-align: center;
+  padding: 40px 0;
+  color: #aaa;
+  font-size: 15px;
+}
+.oh-empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+/* Order card */
+.oh-card {
+  border: 1.5px solid #f0f0f0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  flex-shrink: 0;
+}
+.oh-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #fafafa;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.oh-order-id   { font-weight: 700; font-size: 14px; color: #0d0c22; }
+.oh-order-date { font-size: 12px; color: #999; }
+.oh-card-head-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* Status badges */
+.oh-status {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.status-pending   { background: #fff3cd; color: #856404; }
+.status-confirmed { background: #d1ecf1; color: #0c5460; }
+.status-shipping  { background: #cce5ff; color: #004085; }
+.status-delivered { background: #d4edda; color: #155724; }
+.status-cancelled { background: #f8d7da; color: #721c24; }
+
+/* Cancel button */
+.oh-btn-cancel {
+  font-size: 12px;
+  padding: 4px 12px;
+  border: 1.5px solid #e53935;
+  border-radius: 20px;
+  background: none;
+  color: #e53935;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.oh-btn-cancel:hover { background: #e53935; color: white; }
+
+/* Items */
+.oh-items {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: auto;
+}
+.oh-item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 52px;
+  padding: 4px 0;
+}
+.oh-item-img {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #f5f5f5;
+}
+.oh-item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.oh-item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.oh-item-meta  { font-size: 12px; color: #888; margin-top: 2px; }
+.oh-item-price { font-size: 13px; font-weight: 700; color: #ff3d7f; white-space: nowrap; }
+
+/* Card footer */
+.oh-card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px 14px;
+  border-top: 1px dashed #f0f0f0;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.oh-note  { font-size: 12px; color: #aaa; font-style: italic; }
+.oh-total { font-size: 15px; font-weight: 700; color: #0d0c22; }
+.oh-total span { color: #ff3d7f; }
+
+@media (max-width: 480px) {
+  #oh-overlay { padding: 40px 8px 16px; }
+  #oh-modal   { border-radius: 16px; }
+  #oh-body    { padding: 14px; }
+}
+
+/* =============================================================
+   RANKUP TOAST (từ cart.js)
+   ============================================================= */
+
+@keyframes rankupSlide {
+  from { opacity: 0; transform: translateX(120px) scale(.8); }
+  to   { opacity: 1; transform: translateX(0)      scale(1); }
+}
+@keyframes rankupOut {
+  from { opacity: 1; }
+  to   { opacity: 0; transform: translateX(120px); }
+}
+
+#rankup-toast {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--rankup-bg, linear-gradient(135deg,#ff6b6b,#ff3d7f));
+  color: #fff;
+  padding: 16px 20px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.25);
+  min-width: 300px;
+  max-width: 380px;
+  font-family: inherit;
+  animation: rankupSlide .5s cubic-bezier(.175,.885,.32,1.275) forwards;
+}
+#rankup-toast.removing {
+  animation: rankupOut .4s ease forwards;
+}
+
+.rankup-icon  { font-size: 38px; line-height: 1; }
+.rankup-body  { flex: 1; }
+.rankup-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.rankup-sub   { font-size: 13px; opacity: .92; }
+.rankup-close {
+  background: rgba(255,255,255,.25);
+  border: none;
+  color: #fff;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 13px;
+  flex-shrink: 0;
+}

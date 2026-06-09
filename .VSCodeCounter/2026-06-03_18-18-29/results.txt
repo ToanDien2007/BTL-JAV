@@ -1,0 +1,65 @@
+Date : 2026-06-03 18:18:29
+Directory : d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master
+Total : 33 files,  6440 codes, 370 comments, 619 blanks, all 7429 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| JavaScript |         10 |      1,984 |        168 |        252 |      2,404 |
+| PostCSS    |          9 |      1,746 |         98 |        217 |      2,061 |
+| HTML       |         11 |      1,188 |         13 |         83 |      1,284 |
+| JSON       |          2 |      1,151 |          0 |          2 |      1,153 |
+| MS SQL     |          1 |        371 |         91 |         65 |        527 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                   |         33 |      6,440 |        370 |        619 |      7,429 |
+| . (Files)                                                                           |          4 |      1,936 |        122 |        125 |      2,183 |
+| css                                                                                 |          9 |      1,746 |         98 |        217 |      2,061 |
+| html                                                                                |         11 |      1,188 |         13 |         83 |      1,284 |
+| scripts                                                                             |          9 |      1,570 |        137 |        194 |      1,901 |
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                            | language   | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\css\checkout.css             | PostCSS    |         98 |         10 |         14 |        122 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\css\components.css           | PostCSS    |        331 |         27 |         28 |        386 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\css\forgot-password.css      | PostCSS    |         15 |          0 |          2 |         17 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\css\home.css                 | PostCSS    |        302 |          8 |         35 |        345 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\css\info-page.css            | PostCSS    |        109 |          0 |         20 |        129 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\css\login.css                | PostCSS    |        137 |          0 |         24 |        161 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\css\product-detail.css       | PostCSS    |        307 |         25 |         37 |        369 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\css\products.css             | PostCSS    |        142 |          3 |         24 |        169 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\css\style.css                | PostCSS    |        305 |         25 |         33 |        363 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\html\cart.html               | HTML       |        103 |          0 |          6 |        109 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\html\chinh-sach-doi-tra.html | HTML       |        159 |          0 |          8 |        167 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\html\forgot-password.html    | HTML       |         58 |          0 |          8 |         66 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\html\home.html               | HTML       |         84 |          1 |          5 |         90 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\html\lien-he-ho-tro.html     | HTML       |        197 |          0 |          8 |        205 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\html\login.html              | HTML       |         59 |          0 |          7 |         66 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\html\product-detail.html     | HTML       |        137 |          5 |         12 |        154 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\html\products.html           | HTML       |        155 |          5 |         10 |        170 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\html\register.html           | HTML       |         68 |          0 |          9 |         77 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\html\sale.html               | HTML       |         84 |          1 |          5 |         90 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\html\trend.html              | HTML       |         84 |          1 |          5 |         90 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\itoshira_shop.sql            | MS SQL     |        371 |         91 |         65 |        527 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\package-lock.json            | JSON       |      1,128 |          0 |          1 |      1,129 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\package.json                 | JSON       |         23 |          0 |          1 |         24 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\scripts\auth-ui.js           | JavaScript |        359 |         19 |         26 |        404 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\scripts\auth.js              | JavaScript |        164 |         28 |         28 |        220 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\scripts\cart.js              | JavaScript |        331 |         13 |         29 |        373 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\scripts\filter.js            | JavaScript |         53 |         19 |         13 |         85 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\scripts\product-detail.js    | JavaScript |        357 |         26 |         44 |        427 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\scripts\products.js          | JavaScript |         99 |          4 |         15 |        118 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\scripts\search.js            | JavaScript |        120 |         16 |         21 |        157 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\scripts\shared.js            | JavaScript |         30 |          3 |          8 |         41 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\scripts\toast.js             | JavaScript |         57 |          9 |         10 |         76 |
+| d:\main.py\BTL-Javascrips-master\BTL-Javascrips-master\server.js                    | JavaScript |        414 |         31 |         58 |        503 |
+| Total                                                                               |            |      6,440 |        370 |        619 |      7,429 |
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+

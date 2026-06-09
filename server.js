@@ -247,16 +247,35 @@ app.post('/api/reviews', requireAuth, (req, res) => {
 
 app.post('/api/ratings', requireAuth, (req, res) => {
   const { product_id, rating } = req.body;
-  if (!product_id || rating < 1 || rating > 5) return res.status(400).json({ message: 'Số sao không hợp lệ.' });
+  const userId = req.session.user.id;
 
-  db.query(
-    'INSERT INTO ratings (product_id, user_id, rating) VALUES (?,?,?) ON DUPLICATE KEY UPDATE rating=VALUES(rating)',
-    [product_id, req.session.user.id, rating],
-    (err) => {
-      if (err) return res.status(500).json({ message: err.message });
-      res.json({ message: 'Đã cập nhật đánh giá!' });
-    }
-  );
+  // Sửa điều kiện: cho phép rating chạy từ 0 đến 5
+  if (!product_id || rating < 0 || rating > 5) {
+    return res.status(400).json({ message: 'Số sao không hợp lệ.' });
+  }
+
+  // TRƯỜNG HỢP HỦY SAO: Xóa bản ghi khỏi Database
+  if (rating === 0) {
+    db.query(
+      'DELETE FROM ratings WHERE product_id = ? AND user_id = ?',
+      [product_id, userId],
+      (err) => {
+        if (err) return res.status(500).json({ message: err.message });
+        return res.json({ message: 'Đã hủy đánh giá sao!' });
+      }
+    );
+  } 
+  // TRƯỜNG HỢP ĐÁNH GIÁ/SỬA SAO: Chạy lệnh UPSERT (1 -> 5 sao)
+  else {
+    db.query(
+      'INSERT INTO ratings (product_id, user_id, rating) VALUES (?,?,?) ON DUPLICATE KEY UPDATE rating=VALUES(rating)',
+      [product_id, userId, rating],
+      (err) => {
+        if (err) return res.status(500).json({ message: err.message });
+        return res.json({ message: 'Đã cập nhật đánh giá!' });
+      }
+    );
+  }
 });
 
 app.get('/api/ratings/:productId', (req, res) => {

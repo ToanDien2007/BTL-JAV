@@ -367,3 +367,19 @@
   .login-required-banner { flex-direction: column; text-align: center; padding: 20px 18px; }
   .login-req-btns { justify-content: center; }
 }
+.btn-cancel-rating {
+  margin-left: 12px;
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-cancel-rating:hover {
+  background: #fee2e2;
+  color: #ef4444;
+  border-color: #fca5a5;
+}

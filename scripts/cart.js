@@ -1,5 +1,6 @@
 // =============================================================
 //  cart.js  –  Quản lý giỏ hàng (localStorage) + áp dụng giảm giá hạng thành viên
+//  CSS đã được tách ra components.css
 // =============================================================
 
 const CART_KEY = 'itoshira_cart';
@@ -24,10 +25,10 @@ function addToCart(product, qty = 1, color = '', size = '') {
   } else {
     cart.push({
       key,
-      id:       product.id,
-      name:     product.name,
-      image:    product.image_url,
-      price:    product.price,           // giá gốc DB (đã áp discount_percent)
+      id:    product.id,
+      name:  product.name,
+      image: product.image_url,
+      price: product.price,
       color,
       size,
       qty,
@@ -41,64 +42,54 @@ function updateCartBadge() {
   const cart  = getCart();
   const total = cart.reduce((s, i) => s + i.qty, 0);
   document.querySelectorAll('.cart-badge').forEach(el => {
-    el.textContent = total;
+    el.textContent   = total;
     el.style.display = total > 0 ? 'inline-flex' : 'none';
   });
 }
 
-// ── Helpers dùng chung (fallback nếu thiếu shared.js) ─────────
+// ── Helpers (fallback nếu thiếu shared.js) ────────────────────
 function getDiscount(totalSpent) {
   return window.itoshira?.getDiscountPct ? window.itoshira.getDiscountPct(totalSpent) : 0;
 }
 function formatMoney(n) {
-  return window.itoshira?.formatMoney ? window.itoshira.formatMoney(n, 'đ') : (Number(n).toLocaleString('vi-VN') + 'đ');
+  return window.itoshira?.formatMoney
+    ? window.itoshira.formatMoney(n, 'đ')
+    : Number(n).toLocaleString('vi-VN') + 'đ';
 }
 function getTierName(totalSpent) {
   return window.itoshira?.getTierName ? window.itoshira.getTierName(totalSpent) : 'Vô hạng';
 }
 
-// ── Toast thông báo lên hạng ──────────────────────────────────
+// ── Rankup toast ──────────────────────────────────────────────
+// CSS từ components.css, dùng CSS custom property --rankup-bg
+const RANKUP_COLORS = {
+  'Đồng': 'linear-gradient(135deg,#cd7f32,#e8a96e)',
+  'Bạc':  'linear-gradient(135deg,#8e9eab,#c8d6df)',
+  'Vàng': 'linear-gradient(135deg,#f7971e,#ffd200)',
+};
+const RANKUP_ICONS = { 'Đồng': '🥉', 'Bạc': '🥈', 'Vàng': '🥇' };
+
 function showRankUpToast(newTier) {
-  document.getElementById('rankup-toast')?.remove();
-  const icons  = { 'Đồng': '🥉', 'Bạc': '🥈', 'Vàng': '🥇' };
-  const colors = {
-    'Đồng': 'linear-gradient(135deg,#cd7f32,#e8a96e)',
-    'Bạc':  'linear-gradient(135deg,#8e9eab,#c8d6df)',
-    'Vàng': 'linear-gradient(135deg,#f7971e,#ffd200)',
-  };
+  const existing = document.getElementById('rankup-toast');
+  if (existing) existing.remove();
+
   const toast = document.createElement('div');
   toast.id = 'rankup-toast';
+  toast.style.setProperty('--rankup-bg', RANKUP_COLORS[newTier] || 'linear-gradient(135deg,#ff6b6b,#ff3d7f)');
   toast.innerHTML = `
-    <div style="font-size:38px;line-height:1">${icons[newTier] || '🎉'}</div>
-    <div style="flex:1">
-      <div style="font-size:15px;font-weight:700;margin-bottom:4px">🎊 Chúc mừng! Bạn vừa lên hạng!</div>
-      <div style="font-size:13px;opacity:.92">Bạn đã đạt hạng <strong>${newTier}</strong> — nhận ưu đãi giảm giá ngay!</div>
+    <div class="rankup-icon">${RANKUP_ICONS[newTier] || '🎉'}</div>
+    <div class="rankup-body">
+      <div class="rankup-title">🎊 Chúc mừng! Bạn vừa lên hạng!</div>
+      <div class="rankup-sub">Bạn đã đạt hạng <strong>${newTier}</strong> — nhận ưu đãi giảm giá ngay!</div>
     </div>
-    <button onclick="document.getElementById('rankup-toast').remove()"
-      style="background:rgba(255,255,255,.25);border:none;color:#fff;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:13px;flex-shrink:0">✕</button>
+    <button class="rankup-close" onclick="document.getElementById('rankup-toast').remove()">✕</button>
   `;
-  toast.style.cssText = `
-    position:fixed;top:80px;right:20px;z-index:99999;
-    display:flex;align-items:center;gap:14px;
-    background:${colors[newTier]||'linear-gradient(135deg,#ff6b6b,#ff3d7f)'};
-    color:#fff;padding:16px 20px;border-radius:16px;
-    box-shadow:0 8px 32px rgba(0,0,0,.25);min-width:300px;max-width:380px;
-    font-family:inherit;
-    animation:rankupSlide .5s cubic-bezier(.175,.885,.32,1.275) forwards;
-  `;
-  if (!document.getElementById('rankup-style')) {
-    const s = document.createElement('style');
-    s.id = 'rankup-style';
-    s.textContent = `
-      @keyframes rankupSlide{from{opacity:0;transform:translateX(120px) scale(.8)}to{opacity:1;transform:translateX(0) scale(1)}}
-      @keyframes rankupOut{from{opacity:1}to{opacity:0;transform:translateX(120px)}}
-    `;
-    document.head.appendChild(s);
-  }
+
   document.body.appendChild(toast);
+
   setTimeout(() => {
     if (toast?.parentNode) {
-      toast.style.animation = 'rankupOut .4s ease forwards';
+      toast.classList.add('removing');
       setTimeout(() => toast.remove(), 400);
     }
   }, 6000);
@@ -108,17 +99,13 @@ async function refreshUserAndCheckRank(oldTier) {
   try {
     const res = await fetch('/api/me', { credentials: 'include' });
     if (!res.ok) return;
-    const u = await res.json();
+    const u       = await res.json();
     const newTier = getTierName(u.total_spent);
-    const order = ['Vô hạng','Đồng','Bạc','Vàng'];
+    const order   = ['Vô hạng', 'Đồng', 'Bạc', 'Vàng'];
     if (order.indexOf(newTier) > order.indexOf(oldTier)) showRankUpToast(newTier);
     if (typeof initNavbarAuth === 'function') initNavbarAuth();
-  } catch(_) {}
+  } catch (_) {}
 }
-
-// ── Toast: dùng window.showToast từ toast.js ──────────────────
-// (xem scripts/toast.js)
-
 
 // ── Render trang giỏ hàng ────────────────────────────────────
 async function renderCartPage() {
@@ -127,7 +114,6 @@ async function renderCartPage() {
 
   const cart = getCart();
 
-  // Lấy thông tin user (nếu đăng nhập) để áp dụng giảm giá hạng
   let discountPct = 0;
   let tierName    = '';
   try {
@@ -136,7 +122,7 @@ async function renderCartPage() {
       const user = await res.json();
       discountPct = getDiscount(user.total_spent);
       const tiers = { 0: 'Vô hạng', 5: 'Đồng', 10: 'Bạc', 15: 'Vàng' };
-      tierName = tiers[discountPct] || 'Vô hạng';
+      tierName    = tiers[discountPct] || 'Vô hạng';
     }
   } catch (_) {}
 
@@ -185,13 +171,12 @@ async function renderCartPage() {
     </div>
   `;
 
-  // Render từng item
   const itemsEl = document.getElementById('cart-items');
   cart.forEach((item, idx) => {
     const lineTotal = item.price * item.qty;
-    const el = document.createElement('div');
-    el.className = 'cart-item';
-    el.innerHTML = `
+    const el        = document.createElement('div');
+    el.className    = 'cart-item';
+    el.innerHTML    = `
       <img src="${item.image}" alt="${item.name}"
            onerror="this.src='https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200'"/>
       <div class="item-info">
@@ -211,7 +196,6 @@ async function renderCartPage() {
     itemsEl.appendChild(el);
   });
 
-  // Sự kiện tăng/giảm số lượng
   itemsEl.querySelectorAll('.qty-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const idx = Number(btn.dataset.idx);
@@ -223,7 +207,6 @@ async function renderCartPage() {
     });
   });
 
-  // Sự kiện xóa item
   itemsEl.querySelectorAll('.item-remove').forEach(btn => {
     btn.addEventListener('click', () => {
       const c = getCart();
@@ -233,7 +216,6 @@ async function renderCartPage() {
     });
   });
 
-  // Checkout – mở modal
   document.getElementById('btn-checkout').addEventListener('click', async () => {
     const meRes = await fetch('/api/me', { credentials: 'include' });
     if (!meRes.ok) {
@@ -258,56 +240,56 @@ function openCheckoutModal(user, cart, oldTier = 'Vô hạng') {
   const total    = sub - discount;
   const tiers    = { 0: 'Vô hạng', 5: 'Đồng', 10: 'Bạc', 15: 'Vàng' };
 
-  const modal = document.createElement('div');
-  modal.id = 'checkout-modal';
+  const modal     = document.createElement('div');
+  modal.id        = 'checkout-modal';
   modal.className = 'modal-overlay';
   modal.innerHTML = `
     <div class="modal-box">
       <button class="modal-close" id="modal-close"><i class="fas fa-times"></i></button>
       <div class="modal-inner">
-      <h2 class="modal-title">Xác nhận đặt hàng</h2>
+        <h2 class="modal-title">Xác nhận đặt hàng</h2>
 
-      <div class="modal-section">
-        <label class="modal-label">Họ và tên</label>
-        <input class="modal-input" id="co-name" value="${user.full_name}" readonly/>
-      </div>
-      <div class="modal-section">
-        <label class="modal-label">Số điện thoại</label>
-        <input class="modal-input" id="co-phone" type="tel" placeholder="Nhập số điện thoại" value="${user.phone || ''}"/>
-      </div>
-      <div class="modal-section">
-        <label class="modal-label">Địa chỉ giao hàng</label>
-        <input class="modal-input" id="co-address" placeholder="Nhập địa chỉ đầy đủ" value="${user.address || ''}"/>
-      </div>
-
-      <div class="modal-divider"></div>
-
-      <div class="modal-summary">
-        <div class="modal-sum-row"><span>Tạm tính</span><strong>${formatMoney(sub)}</strong></div>
-        ${disc > 0 ? `<div class="modal-sum-row summary-discount"><span>Giảm giá hạng ${tiers[disc]}</span><strong>−${formatMoney(discount)}</strong></div>` : ''}
-        <div class="modal-sum-row modal-sum-total"><span>Tổng thanh toán</span><strong>${formatMoney(total)}</strong></div>
-      </div>
-
-      <div class="modal-divider"></div>
-
-      <div class="modal-payment">
-        <p class="modal-label">Chuyển khoản qua VietQR</p>
-        <div class="modal-qr-wrap">
-          <img src="https://img.vietqr.io/image/MB-0865623279-compact2.jpg?amount=${total}&addInfo=Thanh toan don hang Itoshira&accountName=NGUYEN TOAN DIEN"
-               alt="QR chuyển khoản" class="modal-qr modal-qr-zoom" title="Nhấn để phóng to"/>
-          <div class="modal-bank-info">
-            <div><i class="fas fa-university"></i> <strong>MB Bank</strong></div>
-            <div><i class="fas fa-user"></i> NGUYEN TOAN DIEN</div>
-            <div><i class="fas fa-credit-card"></i> 0865623279</div>
-            <div><i class="fas fa-money-bill"></i> <strong class="text-pink">${formatMoney(total)}</strong></div>
-          </div>
+        <div class="modal-section">
+          <label class="modal-label">Họ và tên</label>
+          <input class="modal-input" id="co-name" value="${user.full_name}" readonly/>
         </div>
-        <p class="modal-note">Sau khi chuyển khoản, bấm <strong>Xác nhận đặt hàng</strong> bên dưới.</p>
-      </div>
+        <div class="modal-section">
+          <label class="modal-label">Số điện thoại</label>
+          <input class="modal-input" id="co-phone" type="tel" placeholder="Nhập số điện thoại" value="${user.phone || ''}"/>
+        </div>
+        <div class="modal-section">
+          <label class="modal-label">Địa chỉ giao hàng</label>
+          <input class="modal-input" id="co-address" placeholder="Nhập địa chỉ đầy đủ" value="${user.address || ''}"/>
+        </div>
 
-      <button class="btn-checkout modal-confirm-btn" id="modal-confirm">
-        <i class="fas fa-check-circle"></i> Xác nhận đặt hàng
-      </button>
+        <div class="modal-divider"></div>
+
+        <div class="modal-summary">
+          <div class="modal-sum-row"><span>Tạm tính</span><strong>${formatMoney(sub)}</strong></div>
+          ${disc > 0 ? `<div class="modal-sum-row summary-discount"><span>Giảm giá hạng ${tiers[disc]}</span><strong>−${formatMoney(discount)}</strong></div>` : ''}
+          <div class="modal-sum-row modal-sum-total"><span>Tổng thanh toán</span><strong>${formatMoney(total)}</strong></div>
+        </div>
+
+        <div class="modal-divider"></div>
+
+        <div class="modal-payment">
+          <p class="modal-label">Chuyển khoản qua VietQR</p>
+          <div class="modal-qr-wrap">
+            <img src="https://img.vietqr.io/image/MB-0865623279-compact2.jpg?amount=${total}&addInfo=Thanh toan don hang Itoshira&accountName=NGUYEN TOAN DIEN"
+                 alt="QR chuyển khoản" class="modal-qr modal-qr-zoom" title="Nhấn để phóng to"/>
+            <div class="modal-bank-info">
+              <div><i class="fas fa-university"></i> <strong>MB Bank</strong></div>
+              <div><i class="fas fa-user"></i> NGUYEN TOAN DIEN</div>
+              <div><i class="fas fa-credit-card"></i> 0865623279</div>
+              <div><i class="fas fa-money-bill"></i> <strong class="text-pink">${formatMoney(total)}</strong></div>
+            </div>
+          </div>
+          <p class="modal-note">Sau khi chuyển khoản, bấm <strong>Xác nhận đặt hàng</strong> bên dưới.</p>
+        </div>
+
+        <button class="btn-checkout modal-confirm-btn" id="modal-confirm">
+          <i class="fas fa-check-circle"></i> Xác nhận đặt hàng
+        </button>
       </div>
     </div>
   `;
@@ -317,10 +299,11 @@ function openCheckoutModal(user, cart, oldTier = 'Vô hạng') {
   document.getElementById('modal-close').addEventListener('click', () => modal.remove());
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 
-  // Phóng to QR khi click
+  // Phóng to QR
   modal.querySelector('.modal-qr-zoom').addEventListener('click', () => {
     const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;animation:ddFade 0.2s ease';
+    overlay.className = 'modal-overlay';
+    overlay.style.cssText = 'z-index:999999;background:rgba(0,0,0,0.85);cursor:zoom-out;';
     overlay.innerHTML = `<img src="https://img.vietqr.io/image/MB-0865623279-compact2.jpg?amount=${total}&addInfo=Thanh toan don hang Itoshira&accountName=NGUYEN TOAN DIEN" style="max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 0 40px rgba(0,0,0,0.5)"/>`;
     overlay.addEventListener('click', () => overlay.remove());
     document.body.appendChild(overlay);
@@ -339,7 +322,7 @@ function openCheckoutModal(user, cart, oldTier = 'Vô hạng') {
       body: JSON.stringify({ phone, address }),
     });
 
-    const res = await fetch('/api/orders', {
+    const res  = await fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -364,9 +347,8 @@ function openCheckoutModal(user, cart, oldTier = 'Vô hạng') {
       renderCartPage();
       refreshUserAndCheckRank(oldTier);
     } else {
-      // Nếu lỗi do hết hàng, cập nhật lại giỏ
       if (data.stock !== undefined) {
-        const c = getCart();
+        const c   = getCart();
         const key = `${data.product_id}_${data.color}_${data.size}`;
         const idx = c.findIndex(i => i.key === key);
         if (idx >= 0) {
@@ -381,7 +363,7 @@ function openCheckoutModal(user, cart, oldTier = 'Vô hạng') {
   });
 }
 
-// ── Export để dùng ở các trang khác ──────────────────────────
+// ── Export ────────────────────────────────────────────────────
 window.cartUtils = { addToCart, getCart, updateCartBadge };
 
 // ── Khởi chạy ────────────────────────────────────────────────

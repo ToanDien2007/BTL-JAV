@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../css/style.css" />
     <link rel="stylesheet" href="../css/home.css" />
     <link rel="stylesheet" href="../css/product-detail.css" />
+    <link rel="stylesheet" href="../css/components.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   </head>
   <body>
@@ -41,9 +42,9 @@
         <div class="detail-info">
           <p class="detail-sku">Mã SP: <span id="product-sku">–</span></p>
           <div class="detail-price">
-            <span id="product-old-price" class="old-price" style="display:none"></span>
+            <span id="product-old-price" class="old-price hidden"></span>
             <span id="product-price"></span>
-            <span id="product-discount" style="color:#ff3d7f;font-weight:bold;margin-left:8px;display:none"></span>
+            <span id="product-discount" class="discount-badge hidden"></span>
           </div>
           <p class="detail-desc" id="product-desc"></p>
           <div class="detail-meta">
@@ -97,7 +98,7 @@
           <textarea id="review-comment" placeholder="Nhận xét của bạn về sản phẩm..."></textarea>
 
           <button class="btn-submit-review" id="btn-submit-review">Gửi đánh giá</button>
-          <p class="review-login-hint" id="review-login-hint" style="display:none">
+          <p class="review-login-hint hidden" id="review-login-hint">
             <a href="login.html">Đăng nhập</a> để viết đánh giá.
           </p>
         </div>

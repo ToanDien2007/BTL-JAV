@@ -364,17 +364,100 @@ async function checkLogin() {
 }
 
 // ── Vote sao ─────────────────────────────────────────────────
+// ── Vote sao ─────────────────────────────────────────────────
 async function loadMyRating() {
   try {
     const res  = await fetch(`${BASE}/api/ratings/${productId}`, { credentials: 'include' });
     const data = await res.json();
     const cur  = data.rating || 0;
+    
     document.getElementById('rating-value').value = cur;
+    updateStarsUI(cur);
+  } catch (_) {}
+}
+
+// Hàm bổ trợ cập nhật trạng thái bật/tắt của sao và ẩn/hiện nút Hủy
+function updateStarsUI(ratingValue) {
+  // Bật tắt class active cho sao
+  document.querySelectorAll('.star').forEach(s =>
+    s.classList.toggle('active', Number(s.dataset.v) <= ratingValue)
+  );
+
+  // Xử lý nút Hủy bên cạnh
+  let btnCancel = document.getElementById('btn-cancel-rating');
+  if (!btnCancel) {
+    // Nếu chưa có nút hủy trong HTML, ta tự tạo động bằng JS và chèn sau ngôi sao cuối cùng
+    const starContainer = document.querySelector('.star').parentElement;
+    btnCancel = document.createElement('button');
+    btnCancel.id = 'btn-cancel-rating';
+    btnCancel.className = 'btn-cancel-rating';
+    btnCancel.innerHTML = '✕ Hủy';
+    btnCancel.title = 'Xóa đánh giá sao này';
+    
+    // Sự kiện click vào nút Hủy
+    btnCancel.addEventListener('click', () => sendRating(0));
+    starContainer.appendChild(btnCancel);
+  }
+
+  // Nếu rating > 0 thì hiện nút hủy, nếu = 0 (chưa vote hoặc đã hủy) thì ẩn đi
+  if (ratingValue > 0) {
+    btnCancel.classList.remove('hidden');
+  } else {
+    btnCancel.classList.add('hidden');
+  }
+}
+
+// Hàm gửi dữ liệu lên Server
+async function sendRating(value) {
+  // Cập nhật giao diện tạm thời trước để tạo cảm giác mượt mà
+  document.getElementById('rating-value').value = value;
+  updateStarsUI(value);
+
+  try {
+    const res = await fetch(`${BASE}/api/ratings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ product_id: productId, rating: value }),
+    });
+
+    if (res.ok) {
+      if (value === 0) {
+        window.showToast?.('Đã xóa đánh giá sao.', 'success');
+      } else {
+        window.showToast?.('Đánh giá sao thành công!', 'success');
+      }
+      loadReviews(); // Tải lại block tổng quan số sao trung bình
+    } else {
+      window.showToast?.('Thao tác thất bại.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    window.showToast?.('Lỗi kết nối hệ thống.', 'error');
+  }
+}
+
+// Gán các sự kiện hover cho sao
+document.querySelectorAll('.star').forEach(star => {
+  star.addEventListener('mouseover', () => {
+    const v = Number(star.dataset.v);
+    document.querySelectorAll('.star').forEach(s =>
+      s.classList.toggle('active', Number(s.dataset.v) <= v)
+    );
+  });
+
+  star.addEventListener('mouseout', () => {
+    const cur = Number(document.getElementById('rating-value').value);
     document.querySelectorAll('.star').forEach(s =>
       s.classList.toggle('active', Number(s.dataset.v) <= cur)
     );
-  } catch (_) {}
-}
+  });
+
+  star.addEventListener('click', () => {
+    const v = Number(star.dataset.v);
+    sendRating(v);
+  });
+});
 
 document.querySelectorAll('.star').forEach(star => {
   star.addEventListener('mouseover', () => {
