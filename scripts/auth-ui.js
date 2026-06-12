@@ -1,8 +1,3 @@
-// =============================================================
-//  auth-ui.js  – Navbar auth + Lịch sử mua hàng
-//  CSS đã được tách ra components.css
-// =============================================================
-
 function formatMoney(n) {
   return Number(n || 0).toLocaleString('vi-VN') + '₫';
 }

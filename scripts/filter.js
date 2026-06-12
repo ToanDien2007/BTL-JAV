@@ -1,10 +1,3 @@
-// =============================================================
-//  filter.js  –  Bộ lọc sản phẩm cho products.html
-//  Thêm vào cuối products.html: <script src="../scripts/filter.js"></script>
-//  Phải đặt SAU products.js (cần dùng hàm doRender)
-// =============================================================
-
-// ── Đọc giá trị bộ lọc từ data-* attribute ───────────────────
 function collectFilters() {
   const filters = {};
 

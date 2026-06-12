@@ -1,10 +1,3 @@
-// =============================================================
-//  toast.js – Hệ thống thông báo dùng chung (top-center, rơi xuống)
-//  CSS đã được tách ra components.css — không inject inline nữa
-//  Dùng: window.showToast(msg, type)   type: 'success'|'error'|'info'|'warn'
-//        window.showConfirm(msg, onOk) – thay thế confirm()
-// =============================================================
-
 (function () {
   // ── Toast container ───────────────────────────────────────
   function getWrap() {
