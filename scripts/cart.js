@@ -42,7 +42,6 @@ function updateCartBadge() {
   });
 }
 
-// ── Helpers (fallback nếu thiếu shared.js) ────────────────────
 function getDiscount(totalSpent) {
   return window.itoshira?.getDiscountPct ? window.itoshira.getDiscountPct(totalSpent) : 0;
 }

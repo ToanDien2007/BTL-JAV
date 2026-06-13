@@ -81,7 +81,7 @@ const wrap = fn => (req, res, next) => fn(req, res, next).catch(err => {
 //  PRODUCTS
 // =============================================================
 app.get('/api/products', wrap(async (req, res) => {
-  const { gender, cat, min, max, limit } = req.query;
+  const { gender, cat, min, max } = req.query;
   let sql = 'SELECT * FROM products WHERE is_active = 1';
   const params = [];
 
@@ -92,9 +92,6 @@ app.get('/api/products', wrap(async (req, res) => {
     params.push(...cats);
   }
   if (min && max) { sql += ' AND price BETWEEN ? AND ?'; params.push(min, max); }
-
-  const n = parseInt(limit);
-  if (n > 0) { sql += ' LIMIT ?'; params.push(n); }
 
   const [rows] = await db.query(sql, params);
   res.json(rows.map(fixImage));

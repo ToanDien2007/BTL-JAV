@@ -1,7 +1,3 @@
-// =============================================================
-//  search.js – Dropdown search: lịch sử + gợi ý sản phẩm
-// =============================================================
-
 const HISTORY_KEY = 'itoshira_search_history';
 const MAX_HISTORY = 5;
 const POPULAR_LIMIT = 8;
@@ -29,10 +25,11 @@ async function fetchSuggestions(q = '') {
   try {
     const url = q
       ? `/api/search?q=${encodeURIComponent(q)}`
-      : `/api/products?limit=${POPULAR_LIMIT}`;           // server tự cắt, không slice ở client
+      : `/api/products`;
     const res = await fetch(url);
     if (!res.ok) return [];
-    return await res.json();
+    const data = await res.json();
+    return q ? data : data.slice(0, POPULAR_LIMIT); 
   } catch {
     return [];
   }
