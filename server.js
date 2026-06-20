@@ -111,9 +111,9 @@ app.get('/api/products/sale', wrap(async (req, res) => {
 
 app.get('/api/products/:id', wrap(async (req, res) => {
   const id = Number(req.params.id);
-  if (!Number.isFinite(id)) return res.status(400).json({ message: 'Invalid product id' });
+  if (!Number.isFinite(id)) return res.status(400).json({ message: 'ID sản phẩm không hợp lệ' });
   const [rows] = await db.query('SELECT * FROM products WHERE id = ? LIMIT 1', [id]);
-  if (!rows.length) return res.status(404).json({ message: 'Product not found' });
+  if (!rows.length) return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
   res.json(fixImage(rows[0]));
 }));
 
@@ -122,7 +122,7 @@ app.get('/api/products/:id', wrap(async (req, res) => {
 // =============================================================
 app.get('/api/products/:id/variants', wrap(async (req, res) => {
   const id = Number(req.params.id);
-  if (!Number.isFinite(id)) return res.status(400).json({ message: 'Invalid id' });
+  if (!Number.isFinite(id)) return res.status(400).json({ message: 'ID sản phẩm không hợp lệ' });
   const [rows] = await db.query(
     'SELECT id, color, size, stock FROM product_variants WHERE product_id = ? ORDER BY color, size',
     [id]

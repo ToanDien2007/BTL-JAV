@@ -1,18 +1,3 @@
-function formatMoney(n) {
-  return Number(n || 0).toLocaleString('vi-VN') + '₫';
-}
-
-function getMemberTier(totalSpent) {
-  const s = Number(totalSpent) || 0;
-  if (s >= 10_000_000)
-    return { name: 'Vàng', icon: '🥇', discount: 15, next: null, needed: 0 };
-  if (s >= 5_000_000)
-    return { name: 'Bạc', icon: '🥈', discount: 10, next: 'Vàng', needed: 10_000_000 - s };
-  if (s >= 1_000_000)
-    return { name: 'Đồng', icon: '🥉', discount: 5, next: 'Bạc', needed: 5_000_000 - s };
-  return { name: 'Vô hạng', icon: '⭐', discount: 0, next: 'Đồng', needed: 1_000_000 - s };
-}
-
 // ──────────────────────────────────────────────────────────────
 //  NAVBAR AUTH
 // ──────────────────────────────────────────────────────────────
@@ -34,16 +19,16 @@ async function initNavbarAuth() {
     return;
   }
 
-  const tier = getMemberTier(user.total_spent);
+  const tier = itoshira.getTierFromSpent(user.total_spent);
   const tierClass = {
-    'Vô hạng': 'tier-vohan',
+    'Vô hạng': 'tier-vohang',
     'Đồng':    'tier-dong',
     'Bạc':     'tier-bac',
     'Vàng':    'tier-vang',
-  }[tier.name] || 'tier-vohan';
+  }[tier.name] || 'tier-vohang';
 
   const needText = tier.next
-    ? `<span>Cần tiêu thêm <strong>${formatMoney(tier.needed)}</strong></span><span>để lên hạng <strong>${tier.next}</strong></span>`
+    ? `<span>Cần tiêu thêm <strong>${itoshira.formatMoney(tier.needed)}</strong></span><span>để lên hạng <strong>${tier.next}</strong></span>`
     : `<span>Bạn đang ở hạng cao nhất! 🎉</span>`;
 
   authDiv.innerHTML = `
@@ -62,7 +47,7 @@ async function initNavbarAuth() {
         <div class="dd-row">
           <i class="fas fa-shopping-bag dd-icon"></i>
           <span class="dd-label">Tổng đã mua:</span>
-          <strong class="dd-val">${formatMoney(user.total_spent)}</strong>
+          <strong class="dd-val">${itoshira.formatMoney(user.total_spent)}</strong>
         </div>
 
         <div class="dd-row dd-need">
@@ -197,7 +182,7 @@ function renderOrders(orders) {
           <div class="oh-item-name">${i.name || 'Sản phẩm'}</div>
           <div class="oh-item-meta">${[i.color, i.size].filter(Boolean).join(' / ')} &nbsp;×&nbsp; ${i.quantity}</div>
         </div>
-        <div class="oh-item-price">${formatMoney(i.line_total)}</div>
+        <div class="oh-item-price">${itoshira.formatMoney(i.line_total)}</div>
       </div>
     `).join('');
 
@@ -216,7 +201,7 @@ function renderOrders(orders) {
         <div class="oh-items">${itemsHtml || '<div style="color:#aaa;font-size:13px">Không có sản phẩm.</div>'}</div>
         <div class="oh-card-foot">
           <div class="oh-note">${o.note ? `Ghi chú: ${o.note}` : ''}</div>
-          <div class="oh-total">Tổng: <span>${formatMoney(o.total)}</span></div>
+          <div class="oh-total">Tổng: <span>${itoshira.formatMoney(o.total)}</span></div>
         </div>
       </div>
     `;
@@ -284,7 +269,8 @@ if (window.location.pathname.includes('login.html')) {
       });
       const data = await res.json();
       if (res.ok) {
-        window.location.href = 'home.html';
+        window.showToast?.('Đăng nhập thành công!', 'success');
+        setTimeout(() => { window.location.href = 'home.html'; }, 1000);
       } else {
         errMsg.textContent  = data.message || 'Đăng nhập thất bại.';
         btn.disabled        = false;

@@ -20,7 +20,6 @@ function saveHistory(kw) {
   localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
 }
 
-// ── Fetch sản phẩm từ server (limit xử lý ở server) ──────────
 async function fetchSuggestions(q = '') {
   try {
     const url = q
